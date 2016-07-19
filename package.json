@@ -1,0 +1,29 @@
+{
+  "name": "visual-regression",
+  "version": "0.0.1",
+  "description": "visual regression testing in Intern",
+  "main": "src/main",
+  "scripts": {
+    "test": "./node_modules/.bin/intern-runner config=tests/intern.local"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devpaul/visual-regression.git"
+  },
+  "keywords": [
+    "intern"
+  ],
+  "author": "Paul Shannon",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/devpaul/visual-regression/issues"
+  },
+  "homepage": "https://github.com/devpaul/visual-regression#readme",
+  "devDependencies": {
+    "intern": "^3.2.3"
+  },
+  "dependencies": {
+    "mkdirp": "^0.5.1",
+    "pngjs": "^2.3.1"
+  }
+}
