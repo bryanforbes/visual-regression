@@ -42,5 +42,13 @@ define({
 
 	// A regular expression matching URLs to files that should not be included in code coverage analysis. Set to `true`
 	// to completely disable code coverage.
-	excludeInstrumentation: /^(?:tests|node_modules)\//
+	excludeInstrumentation: /^(?:tests|node_modules)\//,
+
+	// Visual Regression Testing Options
+	visualRegression: {
+		baselineLocation: './visual-test/baselines',
+		missingBaselines: 'skip',
+		reportLocation: './visual-test/report',
+		tolerance: 0.1
+	}
 });

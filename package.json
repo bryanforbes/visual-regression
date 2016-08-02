@@ -4,7 +4,7 @@
   "description": "visual regression testing in Intern",
   "main": "src/main",
   "scripts": {
-    "test": "./node_modules/.bin/intern-runner config=tests/intern.local"
+    "test": "node $NODE_DEBUG_OPTION ./node_modules/.bin/intern-runner config=tests/intern.local"
   },
   "repository": {
     "type": "git",
