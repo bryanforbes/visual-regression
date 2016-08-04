@@ -29,7 +29,8 @@ define({
 	loaderOptions: {
 		// Packages that should be registered with the loader in each testing environment
 		packages: [
-			{ name: 'lib', location: './src' },
+			{ name: 'src', location: './src' },
+			{ name: 'visual', location: './src' },
 			{ name: 'tests', location: './tests' }
 		]
 	},
