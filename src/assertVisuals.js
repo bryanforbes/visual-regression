@@ -8,13 +8,14 @@ var ImageAnalysis = require('./ImageAnalysis');
 var ImageComparator = require('./ImageComparator');
 var loadPng = require('./util/loadPng');
 var saveFile = require('./util/saveFile');
+var collector = require('./reporters/collector');
 
 function assertVisuals(test, options) {
 	options = Object.assign({}, defaults, options || {});
 
 	return function (screenshot) {
 		var filename = pathUtil.join(options.directory, options.baselineLocation, getBaselineName(test));
-		var report = new ImageAnalysis(test.id);
+		var report = new ImageAnalysis(test);
 
 		if (fs.existsSync(filename)) {
 			return loadPng(filename)
@@ -25,13 +26,27 @@ function assertVisuals(test, options) {
 
 					// TODO optionally scale images
 
-					// TODO should I catch errors?
-					return comparator.compare(baseline, actual, report);
+					try {
+						comparator.compare(baseline, actual, report);
+					}
+					catch (error) {
+						report.recordError(error);
+					}
 
-					console.log('difference count', report.differenceCount);
-					console.log('error rate', report.errorRate);
+					collector.startup(options);
+					return collector.add(report)
+						.then(function (metadata) {
+							if (report.error) {
+								throw report.error;
+							}
+							else if (!report.isPassing()) {
+								var error = new Error('Image does not match the baseline. Variation: ' + report.matchingPixelRatio);
+								error.metadata = metadata;
+								throw error;
+							}
 
-					// TODO add report to reporters/collector
+							return metadata;
+						});
 				})
 		}
 

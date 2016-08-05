@@ -28,6 +28,8 @@ var defaults = {
 	 * @type {boolean} scale the images if they are a different size before comparing them
 	 */
 	scaleImages: false,
+	
+	minPercentMatching: 0.9999,
 
 	comparator: Object.freeze({
 		ignoreAntialiasing: false,

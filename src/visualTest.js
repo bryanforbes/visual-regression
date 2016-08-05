@@ -1,4 +1,5 @@
 var assertVisuals = require('./assertVisuals');
+var resizeWindow = require('./helpers/resizeWindow');
 
 /**
  * Create an Intern test from a series of options
@@ -12,7 +13,7 @@ function visualTest(options) {
 			.get(options.url)
 			.then(function () {
 				if(options.width && options.height) {
-					return this.parent.setWindowSize(options.width, options.height);
+					return resizeWindow(options.width, options.height).apply(this);
 				}
 			})
 			.takeScreenshot()

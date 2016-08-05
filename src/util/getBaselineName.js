@@ -12,6 +12,8 @@ function sanatizeFilename(name) {
 function getBaselineName(test, options) {
 	var name = [];
 	options = options || {};
+	var suffix = options.suffix || '';
+	var extension = options.extension || '.png';
 
 	for (; test.parent; test = test.parent) {
 		name.unshift(test.name);
@@ -21,7 +23,7 @@ function getBaselineName(test, options) {
 		name.unshift(test._remote.environmentType.browserName);
 	}
 
-	return sanatizeFilename(name.join('/') + '.png');
+	return sanatizeFilename(name.join('/') + suffix + extension);
 }
 
 module.exports = getBaselineName;

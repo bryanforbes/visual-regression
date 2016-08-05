@@ -1,10 +1,10 @@
 var pngjs = require('pngjs');
 var getRGBA = require('./util/getRGBA');
 
-function ImageAnalysis(name, options) {
+function ImageAnalysis(test, options) {
 	options = options || { };
 	Object.apply(this, options);
-	this.name = name;
+	this.test = test;
 	this.log = [];
 	this.differenceCount = 0;
 	this._differenceImage = null;
@@ -21,13 +21,33 @@ ImageAnalysis.prototype = {
 
 	generateImageDifference: true,
 
-	errorColor: [0, 0, 0],
+	errorColor: Object.freeze([255, 0, 0]),
+
+	backgroundColor: null,
+
+	error: null,
+
+	log: null,
+
+	minPercentMatching: 1,
+
+	get id() {
+		return this.test.id;
+	},
+
+	get width() {
+		return this.baseline.width;
+	},
+	
+	get height() {
+		return this.baseline.height;
+	},
 
 	get numberOfPixels() {
 		return this.baseline.width * this.baseline.height;
 	},
 
-	get errorRate() {
+	get matchingPixelRatio() {
 		return (this.numberOfPixels - this.differenceCount) / this.numberOfPixels;
 	},
 
@@ -37,14 +57,30 @@ ImageAnalysis.prototype = {
 
 	get differenceImage() {
 		if (!this._differenceImage) {
-			this._differenceImage = new pngjs.PNG({
-				width: this.width,
-				height: this.height,
-				filterType: -1
-			});
+			this._differenceImage = this._createImage();
 		}
 
 		return this._differenceImage;
+	},
+
+	isPassing: function () {
+		return this.matchingPixelRatio >= this.minPercentMatching;
+	},
+
+	_createImage: function () {
+		var options = {
+			width: this.width,
+			height: this.height
+		};
+		if (this.backgroundColor) {
+			options.colorType = 2;
+			options.bgColor = this.backgroundColor;
+		}
+		var png = this._differenceImage = new pngjs.PNG(options);
+		png.on('error', function (err) {
+			self.recordError(err.message);
+		});
+		return png;
 	},
 
 	recordBaseline: function (filename, width, height) {
@@ -61,7 +97,7 @@ ImageAnalysis.prototype = {
 
 	recordError: function (error) {
 		this.log.push(error.message);
-		this.hasError = true;
+		this.error = error;
 	},
 
 	recordPixelDifference: function (x, y) {
@@ -70,10 +106,10 @@ ImageAnalysis.prototype = {
 
 		this.differenceCount++;
 
-		console.log(png.data, this.errorColor)
 		png.data[index++] = this.errorColor[0];
 		png.data[index++] = this.errorColor[1];
-		png.data[index] = this.errorColor[2];
+		png.data[index++] = this.errorColor[2];
+		png.data[index] = 0xFF;
 	}
 };
 

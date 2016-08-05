@@ -20,6 +20,8 @@ ImageComparator.prototype = {
 	}),
 	
 	createDifferenceImage: true,
+
+	pixelSkip: 1,
 	
 	compare: function (baseline, actual, reporter) {
 		if (baseline == null || actual == null) {
@@ -36,8 +38,9 @@ ImageComparator.prototype = {
 		var redTol = this.pixelTolerance.red;
 		var greenTol = this.pixelTolerance.green;
 		var blueTol = this.pixelTolerance.blue;
+		var increment = 4 * this.pixelSkip;
 
-		for (var i = 0; i < numSubPixels; i += 4) {
+		for (var i = 0; i < numSubPixels; i += increment) {
 			if (
 				!this._isColorClose(baseline.data[i], actual.data[i], redTol) ||
 				!this._isColorClose(baseline.data[i + 1], actual.data[i + 1], greenTol) ||

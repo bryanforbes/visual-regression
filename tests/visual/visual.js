@@ -19,22 +19,22 @@ define([
 	registerSuite({
 		name: 'visual',
 
-		// 'create a test': visualTest({
-		// 	url: 'http://localhost:9000/tests/support/pages/basic.html',
-		// 	width: 1024,
-		// 	height: 768,
-		// 	missingBaseline: 'snapshot'
-		// }),
-		//
-		// basic: function () {
-		// 	return this.remote
-		// 		.get('http://localhost:9000/tests/support/pages/basic.html')
-		// 		.setWindowSize(1024, 768)  // set the window size
-		// 		.takeScreenshot()
-		// 		.then(assertVisuals(this, {
-		// 			missingBaseline: 'snapshot'
-		// 		}));
-		// },
+		'create a test': visualTest({
+			url: 'http://localhost:9000/tests/support/pages/basic.html',
+			width: 1024,
+			height: 768,
+			missingBaseline: 'snapshot'
+		}),
+
+		basic: function () {
+			return this.remote
+				.get('http://localhost:9000/tests/support/pages/basic.html')
+				.setWindowSize(1024, 768)  // set the window size
+				.takeScreenshot()
+				.then(assertVisuals(this, {
+					missingBaseline: 'snapshot'
+				}));
+		},
 
 		difference: function () {
 			var test = this;
@@ -56,7 +56,12 @@ define([
 				})
 				.then(assertVisuals(this, {
 					missingBaseline: 'fail'
-				}));
+				}))
+				.then(function () {
+					throw('Expected mismatch');
+				}, function (error) {
+					assert.property(error, 'metadata', 'metadata is missing');
+				});
 		}
 	});
 });
