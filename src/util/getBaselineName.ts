@@ -1,4 +1,12 @@
-function sanatizeFilename(name) {
+import Test = require('intern/lib/Test');
+
+export interface Options {
+	extension?: string;
+	includeBrowser?: boolean;
+	suffix?: string;
+}
+
+function sanatizeFilename(name: string): string {
 	// TODO sanatize strings to a valid filename
 	return name;
 }
@@ -9,21 +17,18 @@ function sanatizeFilename(name) {
  * @param options {Object} a collection of options
  * @param options.includeBrowser {Boolean} include the browser name as part of the folder
  */
-function getBaselineName(test, options) {
-	var name = [];
-	options = options || {};
+export default function getBaselineName(test: Test, options: Options = {}): string {
+	var name: string[] = [];
 	var suffix = options.suffix || '';
 	var extension = options.extension || '.png';
 
-	for (; test.parent; test = test.parent) {
-		name.unshift(test.name);
+	for (var current: any = test.parent; current.parent; current = current.parent) {
+		name.unshift(current.name);
 	}
 
 	if (options.includeBrowser) {
-		name.unshift(test._remote.environmentType.browserName);
+		name.unshift(current._remote.environmentType.browserName);
 	}
 
 	return sanatizeFilename(name.join('/') + suffix + extension);
 }
-
-module.exports = getBaselineName;

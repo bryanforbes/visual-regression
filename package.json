@@ -1,10 +1,13 @@
 {
-  "name": "visual-regression",
+  "name": "intern-visual-regression",
   "version": "0.0.1",
-  "description": "visual regression testing in Intern",
+  "description": "Visual regression testing in Intern",
+  "author": "Paul Shannon",
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/devpaul/visual-regression#readme",
   "main": "src/main",
   "scripts": {
-    "test": "node $NODE_DEBUG_OPTION ./node_modules/.bin/intern-runner config=tests/intern.local"
+    "install": "typings install"
   },
   "repository": {
     "type": "git",
@@ -13,14 +16,26 @@
   "keywords": [
     "intern"
   ],
-  "author": "Paul Shannon",
-  "license": "MPL-2.0",
   "bugs": {
     "url": "https://github.com/devpaul/visual-regression/issues"
   },
-  "homepage": "https://github.com/devpaul/visual-regression#readme",
+  "peerDependencies": {
+    "intern": "~3.2"
+  },
   "devDependencies": {
-    "intern": "^3.2.3"
+    "dojo-loader": "^2.0.0-beta.7",
+    "grunt": "^1.0.1",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-jscs": "^3.0.1",
+    "grunt-text-replace": "^0.4.0",
+    "grunt-ts": "^6.0.0-beta.3",
+    "grunt-tslint": "^3.2.1",
+    "intern": "^3.2.3",
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.3"
   },
   "dependencies": {
     "mkdirp": "^0.5.1",

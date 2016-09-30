@@ -1,4 +1,12 @@
-.idea
-node_modules
-.npm
-.node_repl_history
+/src/**/*.js.map
+/src/**/*.js
+dist
+_build
+/node_modules
+.baseDir.ts
+.tsconfig*.json
+html-report
+/typings
+.grunt
+npm-debug.log
+visual-test

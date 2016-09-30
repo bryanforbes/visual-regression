@@ -1,9 +1,11 @@
-function resizeWindow(width, height) {
+import { CommandHelper } from '../interfaces';
+
+export default function (width: number, height: number): CommandHelper {
 	return function () {
 		return this.parent
 			.setWindowSize(width, height)
 			.setExecuteAsyncTimeout(5000)
-			.executeAsync(function (width, height, callback) {
+			.executeAsync(function (width: number, height: number, callback: (result: any) => void) {
 				function isResized() {
 					return window.innerHeight <= height && window.innerWidth <= width;
 				}
@@ -15,7 +17,5 @@ function resizeWindow(width, height) {
 					}
 				}, 250);
 			}, [ width, height ]);
-	}
+	};
 }
-
-module.exports = resizeWindow;
