@@ -11,15 +11,19 @@ export const maxConcurrency = 2;
 
 export const tunnel = 'NullTunnel';
 
+export const loaders = {
+	'host-browser': 'node_modules/dojo-loader/loader.js',
+	'host-node': 'dojo-loader'
+};
+
 export const loaderOptions = {
 	packages: [
 		{ name: 'src', location: `${ destination }/src` },
-		{ name: 'visual', location: `${ destination }/src` },
 		{ name: 'tests', location: `${ destination }/tests` }
 	]
 };
 
-export const suites: string[] = [ 'tests/unit/all' ];
+// export const suites: string[] = [ 'tests/unit/all' ];
 
 export const functionalSuites: string[] = [ 'tests/visual/all' ];
 

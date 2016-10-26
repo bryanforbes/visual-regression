@@ -1,26 +1,17 @@
 {
 	"version": "2.0.0",
 	"compilerOptions": {
-		"declaration": false,
-		"module": "umd",
-		"noImplicitAny": true,
-		"outDir": "_build/",
 		"baseUrl": ".",
-		"paths": {
-			"dojo-core/*": [
-				"node_modules/dojo-core/dist/umd/*"
-			],
-			"dojo-has/*": [
-				"node_modules/dojo-has/*"
-			],
-			"dojo-shim/*": [
-				"node_modules/dojo-shim/dist/umd/*"
-			]
-		},
-		"removeComments": false,
+		"declaration": true,
+		"module": "umd",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noImplicitThis": false,
+		"outDir": "_build/",
+		"removeComments": true,
 		"sourceMap": true,
-		"target": "es5",
-		"moduleResolution": "node"
+		"strictNullChecks": false,
+		"target": "es5"
 	},
 	"include": [
 		"./typings/index.d.ts",

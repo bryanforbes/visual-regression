@@ -1,21 +1,25 @@
+/// <reference path="../modules.d.ts" />
+
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
-import { assertVisuals, config, util } from 'intern/dojo/node!src';
+import { config, visualTest, assertVisuals, util } from 'src/index';
 import { join as joinPath } from 'intern/dojo/node!path';
 import * as Test from 'intern/lib/Test';
 
 function createBaseline(test: Test): (screenshot: Buffer) => void {
 	return function (screenshot: Buffer): void {
-		var filename = joinPath(config.directory, config.baselineLocation, getBaselineName(test));
-		saveFile(filename, screenshot);
+		var filename = joinPath(config.directory, config.baselineLocation, util.getBaselineName(test));
+		util.saveFile(filename, screenshot);
 	};
 }
+
+const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
 registerSuite({
 	name: 'programmatic',
 
 	'create a test': visualTest({
-		url: 'http://localhost:9000/tests/support/pages/basic.html',
+		url: basicPageUrl,
 		width: 1024,
 		height: 768,
 		missingBaseline: 'snapshot'
@@ -23,7 +27,7 @@ registerSuite({
 
 	basic() {
 		return this.remote
-			.get('http://localhost:9000/tests/support/pages/basic.html')
+			.get(basicPageUrl)
 			.setWindowSize(1024, 768)  // set the window size
 			.takeScreenshot()
 			.then(assertVisuals(this, {
@@ -33,7 +37,7 @@ registerSuite({
 
 	difference() {
 		return this.remote
-			.get('http://localhost:9000/tests/support/pages/basic.html')
+			.get(basicPageUrl)
 			.setWindowSize(1024, 768)  // set the window size
 			.takeScreenshot()
 			.then(createBaseline(this))
@@ -43,8 +47,8 @@ registerSuite({
 			})
 			.takeScreenshot()
 			.then((screenshot: Buffer): Buffer => {
-				var filename = joinPath(config.directory, config.baselineLocation, getBaselineName(this));
-				saveFile(filename + '.actual.png', screenshot);
+				var filename = joinPath(config.directory, config.baselineLocation, util.getBaselineName(this));
+				util.saveFile(filename + '.actual.png', screenshot);
 				return screenshot;
 			})
 			.then(assertVisuals(this, {
@@ -56,4 +60,4 @@ registerSuite({
 				assert.property(error, 'metadata', 'metadata is missing');
 			});
 	}
-})
+});

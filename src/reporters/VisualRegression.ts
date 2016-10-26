@@ -5,7 +5,7 @@ import Suite = require('intern/lib/Suite');
 import WritableStream = NodeJS.WritableStream;
 import {VisualRegressionTest} from '../interfaces';
 
-interface ReportConfig {
+export interface ReportConfig {
 	console: any;
 	output: WritableStream;
 	directory: string;
