@@ -35,6 +35,7 @@ export interface Report {
 	hasDifferences: boolean;
 	height: number;
 	isPassing: boolean;
+	numDifferences: number;
 	width: number;
 }
 

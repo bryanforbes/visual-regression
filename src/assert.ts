@@ -7,6 +7,7 @@ import LeadfootCommand = require('leadfoot/Command');
 import saveFile from './util/saveFile';
 import { VisualRegressionTest, Report } from './interfaces';
 import config from './config';
+import VisualRegressionError from './VisualRegressionError';
 
 export interface Options {
 	directory?: string;
@@ -42,7 +43,7 @@ export default function assertVisuals(test: Test, options: Options = config) {
 					reports.push(report);
 
 					if (!report.isPassing) {
-						throw new Error('failed visual regression');
+						throw new VisualRegressionError('failed visual regression', report);
 					}
 
 					return report;

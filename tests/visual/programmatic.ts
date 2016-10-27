@@ -2,9 +2,10 @@
 
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
-import { config, visualTest, assertVisuals, util } from 'src/index';
+import { config, assertVisuals, util } from 'src/index';
 import { join as joinPath } from 'intern/dojo/node!path';
 import * as Test from 'intern/lib/Test';
+import { Report } from '../../src/interfaces';
 
 function createBaseline(test: Test): (screenshot: Buffer) => void {
 	return function (screenshot: Buffer): void {
@@ -18,13 +19,6 @@ const basicPageUrl = require.toUrl('../support/pages/basic.html');
 registerSuite({
 	name: 'programmatic',
 
-	'create a test': visualTest({
-		url: basicPageUrl,
-		width: 1024,
-		height: 768,
-		missingBaseline: 'snapshot'
-	}),
-
 	basic() {
 		return this.remote
 			.get(basicPageUrl)
@@ -32,7 +26,11 @@ registerSuite({
 			.takeScreenshot()
 			.then(assertVisuals(this, {
 				missingBaseline: 'snapshot'
-			}));
+			}))
+			.then(function (report: Report) {
+				assert.isTrue(report.isPassing);
+				assert.deepEqual(report.numDifferences, 0);
+			});
 	},
 
 	difference() {
@@ -57,7 +55,7 @@ registerSuite({
 			.then(function () {
 				throw('Expected mismatch');
 			}, function (error: Error) {
-				assert.property(error, 'metadata', 'metadata is missing');
+				assert.property(error, 'report', 'report is missing');
 			});
 	}
 });

@@ -47,6 +47,10 @@ export default class {
 
 	private _error: Error;
 
+	private _start: number[];
+
+	private _runningTime: number[];
+
 	constructor(baseline: ImageMetadata, actual: ImageMetadata) {
 		this.baseline = baseline;
 		this.actual = actual;
@@ -91,8 +95,13 @@ export default class {
 			hasDifferences: this._differenceCount > 0,
 			height: height,
 			isPassing: matchingPixels >= this.matchRatio,
+			numDifferences: this._differenceCount,
 			width: width
 		};
+	}
+
+	get runningTime(): number {
+		return this._runningTime && this._runningTime[0];
 	}
 
 	recordLog(item: string): void {
@@ -110,10 +119,18 @@ export default class {
 
 		this._differenceCount++;
 
-		png.data[index++] = this.errorColor[0];
-		png.data[index++] = this.errorColor[1];
-		png.data[index++] = this.errorColor[2];
-		png.data[index] = this.errorColor[3];
+		png.data[index] = this.errorColor[0];
+		png.data[index + 1] = this.errorColor[1];
+		png.data[index + 2] = this.errorColor[2];
+		png.data[index + 3] = this.errorColor[3];
+	}
+
+	recordStart(): void {
+		this._start = process.hrtime();
+	}
+
+	recordEnd(): void {
+		this._runningTime = process.hrtime(this._start);
 	}
 
 	private _createImage() {
