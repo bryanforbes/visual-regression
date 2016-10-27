@@ -1,8 +1,8 @@
 /* tslint:disable:no-unused-variable */
 
-import { default as assertVisuals } from './assertVisuals';
+import { default as assertVisuals } from './assert';
 import { default as config } from './config';
-import { default as visualTest } from './visualTest';
+import { default as visualTest } from './test';
 import getBaselineName, { Options as getBaselineNameOptions } from './util/getBaselineName';
 import getRGBA, { ColorDescriptor } from './util/getRGBA';
 import saveFile from './util/saveFile';

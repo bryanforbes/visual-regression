@@ -1,5 +1,5 @@
 import resizeWindow from './helpers/resizeWindow';
-import assertVisuals, { Options as AssertVisualOptions } from './assertVisuals';
+import assertVisuals, { Options as AssertVisualOptions } from './assert';
 import * as Command  from 'leadfoot/Command';
 
 export interface Options extends AssertVisualOptions {

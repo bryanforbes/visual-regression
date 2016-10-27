@@ -6,6 +6,7 @@ import ImageComparator from './comparators/PngJsImageComparator';
 import LeadfootCommand = require('leadfoot/Command');
 import saveFile from './util/saveFile';
 import { VisualRegressionTest, Report } from './interfaces';
+import config from './config';
 
 export interface Options {
 	directory?: string;
@@ -23,9 +24,12 @@ export interface Options {
  * @param options execution options overriding defaults
  * @return {(screenshot:Buffer)=>Promise<TResult>}
  */
-export default function assertVisuals(test: Test, options: Options) {
+export default function assertVisuals(test: Test, options: Options = config) {
 	return function (this: LeadfootCommand<any>, screenshot: Buffer): Promise<Report> | never {
-		const baselineFilename = pathJoin(options.directory, options.baselineLocation, getBaselineName(test));
+		const directory: string = options.directory || config.directory;
+		const baselineLocation: string = options.baselineLocation || config.baselineLocation;
+		const baselineName: string = getBaselineName(test);
+		const baselineFilename: string = pathJoin(directory, baselineLocation, baselineName);
 
 		if (existsSync(baselineFilename)) {
 			const comparator = new ImageComparator();
