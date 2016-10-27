@@ -1,41 +1,31 @@
 import * as intern from 'intern';
 import { mixin } from 'dojo/lang';
+import { Options as ComparatorOptions } from './comparators/PngJsImageComparator';
+import { Options as ComparisonOptions } from './comparators/ImageComparison';
+import { Options as AssertOptions } from './assert';
 
-export interface Config {
-	baselineLocation?: string;
+export type ComparatorConfig = ComparatorOptions & ComparisonOptions;
+
+export interface Config extends AssertOptions {
 	comparator?: ComparatorConfig;
-	directory?: string;
-	minPercentMatching?: number;
-	missingBaseline?: 'skip';
-	reportLocation?: string;
-	tolerance?: number;
-}
-
-export interface ComparatorConfig {
-	errorColor?: string;
-	overlayBaselineOpacity?: number;
 }
 
 const internConfig: any = (<any> intern).config || {};
 const visualConfig: Config = internConfig.visual || {};
 const defaults: Config = {
-	directory: 'visual-test',
-
-	reportLocation: 'report',
-
 	baselineLocation: 'baselines',
 
-	tolerance: 0.1,
+	comparator: {
+		pixelSkip: 2,
+
+		pixelTolerance: 8,
+
+		matchRatio: 1
+	},
+
+	directory: 'visual-test',
 
 	missingBaseline: 'skip',
-
-	minPercentMatching: 0.999,
-
-	comparator: {
-		errorColor: '#000',
-
-		overlayBaselineOpacity: 0.3
-	}
 };
 
 const config: Config = mixin<Config>({}, defaults, visualConfig);

@@ -10,10 +10,9 @@ import config from './config';
 import VisualRegressionError from './VisualRegressionError';
 
 export interface Options {
-	directory?: string;
 	baselineLocation?: string;
-	missingBaseline?: string;
-	[ key: string ]: any;
+	directory?: string;
+	missingBaseline?: 'skip' | 'snapshot' | 'fail';
 }
 
 /**
@@ -50,7 +49,7 @@ export default function assertVisuals(test: Test, options: Options = config) {
 				});
 		}
 		else {
-			switch (options.missingBaseline) {
+			switch (options.missingBaseline || config.missingBaseline) {
 				case 'skip':
 					throw test.skip('missing baseline');
 				case 'snapshot':

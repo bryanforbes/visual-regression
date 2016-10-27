@@ -31,7 +31,7 @@ export interface ImageMetadata {
 export interface Report {
 	baseline: ImageMetadata;
 	actual: ImageMetadata;
-	difference?: ImageAdapter;
+	differences: number[];
 	hasDifferences: boolean;
 	height: number;
 	isPassing: boolean;

@@ -1,24 +1,23 @@
 import { PNG } from 'pngjs';
-import {ImageComparator, ImageReference, Report, ImageMetadata, RGBColor} from '../interfaces';
+import {ImageComparator, ImageReference, Report, ImageMetadata, RGBColor, RGBColorArray} from '../interfaces';
 import ImageComparison from './ImageComparison';
 import { createReadStream } from 'fs';
 import config from '../config';
+import getRGBA from '../util/getRGBA';
 
 export interface Options {
-	[ key: string ]: any;
+	pixelSkip?: number;
+	pixelTolerance?: number | RGBColor;
 }
 
 export default class PngJsImageComparator implements ImageComparator {
-	pixelTolerance: RGBColor = {
-		red: 8,
-		green: 8,
-		blue: 8
-	};
+	pixelSkip: number;
 
-	pixelSkip: number = 8;
+	pixelTolerance: RGBColorArray;
 
 	constructor(options: Options = {}) {
-		Object.apply(this, options);
+		this.pixelTolerance = getRGBA(options.pixelTolerance || config.comparator.pixelTolerance);
+		this.pixelSkip = options.pixelSkip || config.comparator.pixelSkip;
 	}
 
 	compare(baseline: ImageReference, actual: ImageReference): Promise<Report> {
@@ -41,9 +40,9 @@ export default class PngJsImageComparator implements ImageComparator {
 			const height = baselinePng.height;
 			const width = baselinePng.width;
 			const numSubPixels = (width * height) << 2;
-			const redTol = this.pixelTolerance.red;
-			const greenTol = this.pixelTolerance.green;
-			const blueTol = this.pixelTolerance.blue;
+			const redTol = this.pixelTolerance[0];
+			const greenTol = this.pixelTolerance[1];
+			const blueTol = this.pixelTolerance[2];
 			const increment = 4 * this.pixelSkip;
 
 			const comparison = new ImageComparison(baselineMetadata, actualMetadata);

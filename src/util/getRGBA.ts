@@ -1,6 +1,6 @@
 import {RGBColor, RGBAColorArray, ColorObject, RGBAColor} from '../interfaces';
 
-export type ColorDescriptor = string | RGBColor | number[];
+export type ColorDescriptor = string | RGBColor | number[] | number;
 
 function stringToNumber(radix: number = 10) {
 	return function (str: string) {
@@ -39,12 +39,15 @@ function fromObject(color: ColorObject): RGBAColorArray {
 	rgba.push(color.red || 0);
 	rgba.push(color.green || 0);
 	rgba.push(color.blue || 0);
-	rgba.push((<RGBAColor> color).alpha || 0);
+	rgba.push((<RGBAColor> color).alpha || 0xFF);
 
 	return <RGBAColorArray> rgba;
 }
 
 export default function getRGBA(color: ColorDescriptor): RGBAColorArray {
+	if (typeof color === 'number') {
+		return [color, color, color, 0xFF];
+	}
 	if (typeof color === 'string') {
 		return normalize(fromString(color));
 	}
