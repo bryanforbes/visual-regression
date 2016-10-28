@@ -1,7 +1,7 @@
 // Intern Configuration
 // @see https://theintern.github.io/intern/#common-config
 
-export const destination = './_build';
+export const destination = './_build/';
 
 export const environments = [
 	{ browserName: 'chrome' }
@@ -17,13 +17,14 @@ export const loaders = {
 };
 
 export const loaderOptions = {
+	baseUrl: `${ destination }`,
 	packages: [
-		{ name: 'src', location: `${ destination }/src` },
-		{ name: 'tests', location: `${ destination }/tests` }
+		{ name: 'src', location: `src` },
+		{ name: 'tests', location: `tests` }
 	]
 };
 
-// export const suites: string[] = [ 'tests/unit/all' ];
+export const suites: string[] = [ 'tests/unit/all' ];
 
 export const functionalSuites: string[] = [ 'tests/visual/all' ];
 

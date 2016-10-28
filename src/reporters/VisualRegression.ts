@@ -1,45 +1,66 @@
 import { join as joinPath } from 'path';
 import globalConfig from '../config';
-
 import Suite = require('intern/lib/Suite');
-import WritableStream = NodeJS.WritableStream;
-import {VisualRegressionTest} from '../interfaces';
+import { VisualRegressionTest } from '../interfaces';
+import getBaselineName from '../util/getBaselineName';
+import { ReportConfig } from './interfaces';
 
-export interface ReportConfig {
-	console: any;
-	output: WritableStream;
-	directory: string;
-	htmlReport: boolean;
-	reportUnusedBaselines: boolean;
-	[ key: string ]: any;
+function constructDirectory(base: string, location: string) {
+	if (/^\/|\\/.test(location)) {
+		// Absolute location
+		return location;
+	}
+
+	return joinPath(base, location);
 }
-
 /**
  * A Visual Regression Test HTML reporter
  */
-export default class {
+class VisualRegression {
 	protected config: ReportConfig;
 
-	protected htmlReport: boolean = true;
+	/**
+	 * Root directory to write baseline images
+	 */
+	protected baselineLocation: string;
 
+	/**
+	 * Root directory to write the report
+	 */
+	protected reportLocation: string;
+
+	/**
+	 * If the reporter should scan for and report unused baseline images
+	 */
 	protected reportUnusedBaselines: boolean = false;
 
-	protected directory: string = globalConfig.directory;
+	/**
+	 * If the reporter should output the difference image of a failed test
+	 */
+	protected writeDifferenceImage: boolean;
 
-	protected baselineLocation: string = globalConfig.baselineLocation;
-
-	protected reportLocation: string;
+	/**
+	 * If the reporter should output the screenshot of a failed test
+	 */
+	protected writeScreenshot: string;
 
 	constructor(config: ReportConfig) {
 		this.config = config;
 
-		[ 'htmlReport', 'reportUnusedBaselines', 'directory' ].forEach((key) => {
-			if (key in config) {
-				(<any> this)[key] = (<any> config)[key];
-			}
-		});
+		const baseDirectory = 'directory' in config ? config.directory : globalConfig.directory;
+		const baselineLocation  = 'baselineLocation' in config ?
+			config.baselineLocation : globalConfig.baselineLocation;
+		const reportLocation  = 'reportLocation' in config ?
+			config.reportLocation : globalConfig.report.reportLocation;
 
-		this.reportLocation = joinPath(this.directory, this.baselineLocation);
+		this.baselineLocation = constructDirectory(baseDirectory, baselineLocation);
+		this.reportLocation = constructDirectory(baseDirectory, reportLocation);
+		this.reportUnusedBaselines = 'reportUnusedBaselines' in config ?
+			config.reportUnusedBaselines : globalConfig.report.reportUnusedBaselines;
+		this.writeDifferenceImage = 'writeDifferenceImage' in config ?
+			config.writeDifferenceImage : globalConfig.report.writeDifferenceImage;
+		this.writeScreenshot = 'writeScreenshot' in config ?
+			config.writeScreenshot : globalConfig.report.writeScreenshot;
 	}
 
 	deprecated(name: string, replacement?: string, extra?: string) {
@@ -67,7 +88,6 @@ export default class {
 	 * @param test
 	 */
 	newTest(test: VisualRegressionTest): void {
-
 	}
 
 	/**
@@ -93,7 +113,6 @@ export default class {
 	 * @param executor
 	 */
 	runStart(): void {
-
 	}
 
 	/**
@@ -136,6 +155,8 @@ export default class {
 	 * 3. write report
 	 */
 	testPass(test: VisualRegressionTest): void {
+		const name = getBaselineName(test);
+		console.log(this.reportLocation, name);
 		// TODO write test metadata information to disk
 	}
 
@@ -150,3 +171,6 @@ export default class {
 	testStart(test: VisualRegressionTest): void {
 	}
 }
+
+// ReporterManager looks at the root export as the report, so we need to export using CJS format here :\
+export = VisualRegression;

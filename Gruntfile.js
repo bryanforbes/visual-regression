@@ -194,6 +194,19 @@ module.exports = function (grunt) {
 					reporters: [ 'Runner', { id: 'LcovHtml', directory: 'html-report' } ]
 				}
 			},
+			client: {
+				options: {
+					runType: 'client',
+					reporters: [ 'Console', { id: 'LcovHtml', directory: 'html-report' } ]
+				}
+			},
+			self: {
+				options: {
+					reporters: [
+						{ id: '<%= devDirectory %>/src/reporters/VisualRegression' }
+					]
+				}
+			},
 			proxy: {
 				options: {
 					proxyOnly: true
@@ -370,6 +383,7 @@ module.exports = function (grunt) {
 
 	grunt.registerTask('lint', [ 'jshint', 'jscs', 'tslint' ]);
 	grunt.registerTask('test', [ 'build', 'intern:all' ]);
+	grunt.registerTask('test-quick', [ 'build', 'intern:client' ]);
 	grunt.registerTask('publish', [ 'dist', 'gh-pages:publish' ]);
 	grunt.registerTask('default', [ 'clean', 'lint', 'build' ]);
 };
