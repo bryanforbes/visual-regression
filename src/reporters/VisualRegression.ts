@@ -1,9 +1,16 @@
 import { join as joinPath } from 'path';
 import globalConfig from '../config';
 import Suite = require('intern/lib/Suite');
-import { VisualRegressionTest } from '../interfaces';
-import getBaselineName from '../util/getBaselineName';
+import { VisualRegressionTest, Report } from '../interfaces';
+import { getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename } from '../util/file';
 import { ReportConfig } from './interfaces';
+import { getErrorMessage } from 'intern/lib/util';
+
+interface Note {
+	level: 'info' | 'warn' | 'error' | 'fatal';
+	message: string;
+	type: string;
+}
 
 function constructDirectory(base: string, location: string) {
 	if (/^\/|\\/.test(location)) {
@@ -13,6 +20,7 @@ function constructDirectory(base: string, location: string) {
 
 	return joinPath(base, location);
 }
+
 /**
  * A Visual Regression Test HTML reporter
  */
@@ -44,6 +52,20 @@ class VisualRegression {
 	 */
 	protected writeScreenshot: string;
 
+	/**
+	 * Notes exported to index.html
+	 * @private
+	 */
+	private _globalNotes: Note[] = [];
+
+	private _currentSuite: Suite = null;
+
+	private _hasVisualTest: boolean = false;
+
+	private _numVisualRegressionTests: number = 0;
+
+	private _failingVisualRegressionTests: string[] = [];
+
 	constructor(config: ReportConfig) {
 		this.config = config;
 
@@ -64,7 +86,14 @@ class VisualRegression {
 	}
 
 	deprecated(name: string, replacement?: string, extra?: string) {
-		// TODO store this for general test notes
+		this._globalNotes.push({
+			level: 'warn',
+			type: 'deprecated',
+			message: `${ name } is deprecated.${ replacement ?
+				` Use ${ replacement } instead.` :
+				` Please open a ticket if you require access to this feature.`
+			}${ extra ? ` ${ extra }` : ''}`
+		});
 	}
 
 	/**
@@ -73,7 +102,11 @@ class VisualRegression {
 	 * @param error
 	 */
 	fatalError(error: Error): void {
-		// TODO output a fatal error HTML page
+		this._globalNotes.push({
+			level: 'fatal',
+			type: 'fatal error',
+			message: getErrorMessage(error)
+		});
 	}
 
 	/**
@@ -81,6 +114,9 @@ class VisualRegression {
 	 * @param suite
 	 */
 	newSuite(suite: Suite): void {
+		// track the current suite. If there are visual regression tests we'll add it to the report.
+		this._currentSuite = suite;
+		this._hasVisualTest = false;
 	}
 
 	/**
@@ -95,7 +131,11 @@ class VisualRegression {
 	 * @param error
 	 */
 	reporterError(reporter: any, error: Error): void {
-		// TODO is there much we can do here?
+		this._globalNotes.push({
+			level: 'error',
+			type: 'reporter error',
+			message: getErrorMessage(error)
+		});
 	}
 
 	/**
@@ -105,6 +145,7 @@ class VisualRegression {
 	 */
 	runEnd(): void {
 		// TODO optionally report on baselines not used in this test run
+		// TODO output the main index.html
 	}
 
 	/**
@@ -113,6 +154,7 @@ class VisualRegression {
 	 * @param executor
 	 */
 	runStart(): void {
+
 	}
 
 	/**
@@ -120,7 +162,8 @@ class VisualRegression {
 	 * @param suite
 	 */
 	suiteEnd(suite: Suite): void {
-
+		this._currentSuite = null;
+		this._hasVisualTest = false;
 	}
 
 	/**
@@ -146,7 +189,7 @@ class VisualRegression {
 	 * 3. write report
 	 */
 	testFail(test: VisualRegressionTest): void {
-		// TODO write test failure information to disk
+		this.writeTestReport(test);
 	}
 
 	/**
@@ -155,9 +198,7 @@ class VisualRegression {
 	 * 3. write report
 	 */
 	testPass(test: VisualRegressionTest): void {
-		const name = getBaselineName(test);
-		console.log(this.reportLocation, name);
-		// TODO write test metadata information to disk
+		this.writeTestReport(test);
 	}
 
 	/**
@@ -165,10 +206,37 @@ class VisualRegression {
 	 * 2. write report
 	 */
 	testSkip(test: VisualRegressionTest): void {
-		// TODO write that the test was skipped to disk
+		this.writeTestReport(test);
 	}
 
 	testStart(test: VisualRegressionTest): void {
+	}
+
+	protected writeTestReport(test: VisualRegressionTest): void {
+		if (!test.visualReports || !test.visualReports.length) {
+			return;
+		}
+
+		const reports: Report[] = test.visualReports;
+
+		const testDirectory = getTestDirectory(test);
+		for (let i = 0; i < reports.length; i++) {
+			const report = reports[i];
+			const fileSuffix = i > 0 ? String(i) : '';
+			const baselineName = getBaselineFilename(test, fileSuffix);
+			const differenceName = getDifferenceFilename(test, fileSuffix);
+			const snapshotName = getSnapshotFilename(test, fileSuffix);
+			const baselineFilename = joinPath(this.baselineLocation, testDirectory, baselineName);
+			const differenceFilename = joinPath(this.reportLocation, testDirectory, differenceName);
+			const snapshotFilename = joinPath(this.reportLocation, testDirectory, snapshotName);
+			const reportFilename = joinPath(this.reportLocation, testDirectory, 'index.html');
+
+			report;
+			console.log(baselineFilename);
+			console.log(differenceFilename);
+			console.log(snapshotFilename);
+			console.log(reportFilename);
+		}
 	}
 }
 

@@ -203,7 +203,7 @@ module.exports = function (grunt) {
 			self: {
 				options: {
 					reporters: [
-						{ id: '<%= devDirectory %>/src/reporters/VisualRegression' }
+						{ id: 'src/reporters/VisualRegression' }
 					]
 				}
 			},

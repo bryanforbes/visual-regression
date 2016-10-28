@@ -6,10 +6,17 @@ import { config, assertVisuals, util } from 'src/index';
 import { join as joinPath } from 'intern/dojo/node!path';
 import * as Test from 'intern/lib/Test';
 import { Report } from '../../src/interfaces';
+import { getBaselineFilename, getTestDirectory } from '../../src/util/file';
+
+function getBaselinePath(test: Test, suffix: string = '') {
+	const testDirectory = getTestDirectory(test);
+	const baselineName = getBaselineFilename(test, suffix);
+	return joinPath(config.directory, config.baselineLocation, testDirectory, baselineName);
+}
 
 function createBaseline(test: Test): (screenshot: Buffer) => void {
 	return function (screenshot: Buffer): void {
-		var filename = joinPath(config.directory, config.baselineLocation, util.getBaselineName(test));
+		const filename = getBaselinePath(test);
 		util.saveFile(filename, screenshot);
 	};
 }
@@ -45,7 +52,7 @@ registerSuite({
 			})
 			.takeScreenshot()
 			.then((screenshot: Buffer): Buffer => {
-				var filename = joinPath(config.directory, config.baselineLocation, util.getBaselineName(this));
+				var filename = getBaselineFilename(this, '.actual');
 				util.saveFile(filename + '.actual.png', screenshot);
 				return screenshot;
 			})

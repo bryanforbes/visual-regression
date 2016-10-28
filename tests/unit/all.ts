@@ -1,1 +1,2 @@
-import './util/getBaselineName';
+import './util/file';
+import './reporters/VisualRegression';
