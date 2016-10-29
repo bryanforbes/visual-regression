@@ -58,9 +58,7 @@ export default class PngJsImageComparator implements ImageComparator {
 				) {
 					// translate 1D offset to 2D x, y coordinates
 					const p = i >> 2;
-					const x = p % width;
-					const y = (p - x) / width;
-					comparison.recordPixelDifference(x, y);
+					comparison.recordPixelDifference(p);
 				}
 			}
 			comparison.recordEnd();

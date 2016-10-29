@@ -14,7 +14,7 @@ export default class {
 
 	readonly log: string[] = [];
 
-	private _mismatchedCoordinates: number[] = [];
+	private _pixelDifferences: number[] = [];
 
 	private _error: Error;
 
@@ -36,13 +36,13 @@ export default class {
 		const width = this.baseline.width;
 		const height = this.baseline.height;
 		const numPixels = width * height;
-		const numDifferences = this._mismatchedCoordinates.length / 2;
+		const numDifferences = this._pixelDifferences.length;
 		const percentMatching = (numPixels - numDifferences) / numPixels;
 
 		return {
 			actual: this.actual,
 			baseline: this.baseline,
-			differences: this._mismatchedCoordinates,
+			differences: this._pixelDifferences,
 			hasDifferences: numDifferences > 0,
 			height: height,
 			isPassing: percentMatching >= this.matchRatio,
@@ -64,9 +64,8 @@ export default class {
 		this._error = error;
 	}
 
-	recordPixelDifference(x: number, y: number): void {
-		this._mismatchedCoordinates.push(x);
-		this._mismatchedCoordinates.push(y);
+	recordPixelDifference(pixel: number): void {
+		this._pixelDifferences.push(pixel);
 	}
 
 	recordStart(): void {

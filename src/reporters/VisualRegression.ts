@@ -1,10 +1,12 @@
 import { join as joinPath } from 'path';
 import globalConfig from '../config';
 import Suite = require('intern/lib/Suite');
-import { VisualRegressionTest, Report } from '../interfaces';
+import { VisualRegressionTest, Report, RGBAColorArray } from '../interfaces';
 import { getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename } from '../util/file';
 import { ReportConfig } from './interfaces';
 import { getErrorMessage } from 'intern/lib/util';
+import saveDifferenceImage from './saveDifferenceImage';
+import getRGBA from '../util/getRGBA';
 
 interface Note {
 	level: 'info' | 'warn' | 'error' | 'fatal';
@@ -33,6 +35,11 @@ class VisualRegression {
 	protected baselineLocation: string;
 
 	/**
+	 * The color used for errors in the difference image
+	 */
+	protected errorColor: RGBAColorArray;
+
+	/**
 	 * Root directory to write the report
 	 */
 	protected reportLocation: string;
@@ -41,6 +48,11 @@ class VisualRegression {
 	 * If the reporter should scan for and report unused baseline images
 	 */
 	protected reportUnusedBaselines: boolean = false;
+
+	/**
+	 * If the reporter should copy the baselines to the report
+	 */
+	protected writeBaseline: boolean;
 
 	/**
 	 * If the reporter should output the difference image of a failed test
@@ -83,6 +95,8 @@ class VisualRegression {
 			config.writeDifferenceImage : globalConfig.report.writeDifferenceImage;
 		this.writeScreenshot = 'writeScreenshot' in config ?
 			config.writeScreenshot : globalConfig.report.writeScreenshot;
+
+		this.errorColor = getRGBA(config.errorColor || '#F00');
 	}
 
 	deprecated(name: string, replacement?: string, extra?: string) {
@@ -206,37 +220,71 @@ class VisualRegression {
 	 * 2. write report
 	 */
 	testSkip(test: VisualRegressionTest): void {
+		// TODO write baseline (unless skipped by something else?)
 		this.writeTestReport(test);
 	}
 
 	testStart(test: VisualRegressionTest): void {
 	}
 
-	protected writeTestReport(test: VisualRegressionTest): void {
+	protected writeTestReport(test: VisualRegressionTest): Promise<any> {
 		if (!test.visualReports || !test.visualReports.length) {
 			return;
 		}
 
 		const reports: Report[] = test.visualReports;
 
+		const promises: Promise<void>[] = [];
 		const testDirectory = getTestDirectory(test);
 		for (let i = 0; i < reports.length; i++) {
-			const report = reports[i];
+			const report: Report = reports[i];
 			const fileSuffix = i > 0 ? String(i) : '';
 			const baselineName = getBaselineFilename(test, fileSuffix);
 			const differenceName = getDifferenceFilename(test, fileSuffix);
 			const snapshotName = getSnapshotFilename(test, fileSuffix);
-			const baselineFilename = joinPath(this.baselineLocation, testDirectory, baselineName);
 			const differenceFilename = joinPath(this.reportLocation, testDirectory, differenceName);
 			const snapshotFilename = joinPath(this.reportLocation, testDirectory, snapshotName);
-			const reportFilename = joinPath(this.reportLocation, testDirectory, 'index.html');
+			let baselineFilename = joinPath(this.baselineLocation, testDirectory, baselineName);
 
-			report;
-			console.log(baselineFilename);
-			console.log(differenceFilename);
-			console.log(snapshotFilename);
-			console.log(reportFilename);
+			// TODO maybe turn this into async/await?
+			const promise = Promise.resolve()
+				.then(() => {
+					if (!report.isPassing && this.writeDifferenceImage) {
+						return saveDifferenceImage(report, differenceFilename, {
+							errorColor: this.errorColor
+						});
+					}
+				})
+				.then(() => {
+					// TODO add ability to write the screenshot
+					switch (this.writeScreenshot) {
+						case 'fail':
+							if (!report.isPassing) {
+								console.log('TODO write screenshot', snapshotFilename);
+							}
+							break;
+						case 'always':
+							console.log('TODO write screenshot', snapshotFilename);
+							break;
+					}
+				})
+				.then(() => {
+					if (this.writeBaseline) {
+						const reportBaselineFilename = joinPath(this.reportLocation, testDirectory, baselineName);
+						// TODO copy the baseline file over
+						baselineFilename = reportBaselineFilename;
+					}
+				});
+			promises.push(promise);
 		}
+
+		return Promise.all(promises)
+			.then(() => {
+				const reportFilename = joinPath(this.reportLocation, testDirectory, 'index.html');
+				// TODO write report HTML
+				// TODO include if test passed, or error message if ended in a failure
+				console.log('writing report', reportFilename);
+			});
 	}
 }
 

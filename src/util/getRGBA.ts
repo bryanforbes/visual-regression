@@ -1,16 +1,21 @@
-import {RGBColor, RGBAColorArray, ColorObject, RGBAColor} from '../interfaces';
+import { RGBColor, RGBAColorArray, ColorObject, RGBAColor } from '../interfaces';
 
 export type ColorDescriptor = string | RGBColor | number[] | number;
 
+const defaultColors = [0, 0, 0, 0xFF];
+
 function stringToNumber(radix: number = 10) {
 	return function (str: string) {
+		if (str.length === 1) {
+			str = str + str;
+		}
 		return parseInt(str, radix);
 	};
 }
 
 function normalize(color: number[]): RGBAColorArray {
 	while (color.length < 4) {
-		color.push(0);
+		color.push(defaultColors[color.length]);
 	}
 	return <RGBAColorArray> color;
 }
@@ -39,14 +44,14 @@ function fromObject(color: ColorObject): RGBAColorArray {
 	rgba.push(color.red || 0);
 	rgba.push(color.green || 0);
 	rgba.push(color.blue || 0);
-	rgba.push((<RGBAColor> color).alpha || 0xFF);
+	rgba.push((<RGBAColor> color).alpha || defaultColors[3]);
 
 	return <RGBAColorArray> rgba;
 }
 
 export default function getRGBA(color: ColorDescriptor): RGBAColorArray {
 	if (typeof color === 'number') {
-		return [color, color, color, 0xFF];
+		return [color, color, color, defaultColors[3]];
 	}
 	if (typeof color === 'string') {
 		return normalize(fromString(color));
