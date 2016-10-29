@@ -22,8 +22,17 @@ export type RGBColorArray = [ number, number, number ];
 export type RGBAColorArray = [ number, number, number, number ];
 export type ColorArray = RGBAColorArray | RGBColor;
 
-export interface ImageMetadata {
-	filename?: string;
+export type ImageMetadata = DiskImageMetadata | BufferImageMetadata;
+
+export interface DiskImageMetadata extends CommonImageMetadata {
+	filename: string;
+}
+
+export interface BufferImageMetadata extends CommonImageMetadata {
+	buffer: Buffer;
+}
+
+export interface CommonImageMetadata {
 	height: number;
 	width: number;
 }

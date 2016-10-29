@@ -13,6 +13,6 @@ export const environments = [
 
 export const maxConcurrency = 2;
 
-export const tunnel = 'BrowserStackTunnel';
+export const tunnel = 'SauceLabsTunnel';
 
 export * from './intern';

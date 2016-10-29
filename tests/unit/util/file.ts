@@ -3,6 +3,7 @@ import * as assert from 'intern/chai!assert';
 import { getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename }
 	from 'src/util/file';
 import Test = require('intern/lib/Test');
+import Suite = require('intern/lib/Suite');
 
 const test: Test = <any> {
 	name: 'test', // Test
@@ -22,18 +23,20 @@ const test: Test = <any> {
 	}
 };
 
+const suite: Suite = <any> test.parent;
+
 registerSuite({
 	name: 'file',
 
 	'.getTestDirectory': {
 		'no extra options'() {
-			const actual = getTestDirectory(test);
+			const actual = getTestDirectory(suite);
 			const expected = 'two/one';
 			assert.equal(actual, expected);
 		},
 
 		'with includeBrowser = true'() {
-			const actual = getTestDirectory(test, true);
+			const actual = getTestDirectory(suite, true);
 			const expected = 'Netscape Navigator/two/one';
 			assert.equal(actual, expected);
 		}

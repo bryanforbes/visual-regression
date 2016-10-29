@@ -1,10 +1,9 @@
 import { existsSync } from 'fs';
 import { join as pathJoin } from 'path';
-import { getTestDirectory, getBaselineFilename } from './util/file';
+import { getTestDirectory, getBaselineFilename, save } from './util/file';
 import Test = require('intern/lib/Test');
 import ImageComparator from './comparators/PngJsImageComparator';
 import LeadfootCommand = require('leadfoot/Command');
-import saveFile from './util/saveFile';
 import { VisualRegressionTest, Report } from './interfaces';
 import config from './config';
 import VisualRegressionError from './VisualRegressionError';
@@ -28,7 +27,7 @@ export default function assertVisuals(test: Test, options: Options = config) {
 	return function (this: LeadfootCommand<any>, screenshot: Buffer): Promise<Report> | never {
 		const directory: string = options.directory || config.directory;
 		const baselineLocation: string = options.baselineLocation || config.baselineLocation;
-		const testDirectory: string = getTestDirectory(test);
+		const testDirectory: string = getTestDirectory(test.parent);
 		const baselineName: string = getBaselineFilename(test);
 		const baselineFilename: string = pathJoin(directory, baselineLocation, testDirectory, baselineName);
 
@@ -54,7 +53,7 @@ export default function assertVisuals(test: Test, options: Options = config) {
 				case 'skip':
 					throw test.skip('missing baseline');
 				case 'snapshot':
-					saveFile(baselineFilename, screenshot);
+					save(baselineFilename, screenshot);
 					throw test.skip('generated baseline');
 				default:
 					throw new Error('missing baseline');

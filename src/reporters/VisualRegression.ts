@@ -1,8 +1,11 @@
 import { join as joinPath } from 'path';
 import globalConfig from '../config';
 import Suite = require('intern/lib/Suite');
-import { VisualRegressionTest, Report, RGBAColorArray } from '../interfaces';
-import { getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename } from '../util/file';
+import {VisualRegressionTest, Report, RGBAColorArray, BufferImageMetadata} from '../interfaces';
+import {
+	getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename,
+	save, copy
+} from '../util/file';
 import { ReportConfig } from './interfaces';
 import { getErrorMessage } from 'intern/lib/util';
 import saveDifferenceImage from './saveDifferenceImage';
@@ -12,6 +15,14 @@ interface Note {
 	level: 'info' | 'warn' | 'error' | 'fatal';
 	message: string;
 	type: string;
+}
+
+interface TestReportMetadata {
+	baselineImage: string;
+	isPassing: boolean;
+	differenceImage: string;
+	screenshotImage: string;
+	testDirectory: string;
 }
 
 function constructDirectory(base: string, location: string) {
@@ -70,13 +81,16 @@ class VisualRegression {
 	 */
 	private _globalNotes: Note[] = [];
 
-	private _currentSuite: Suite = null;
+	private _currentSuite: {
+		suite: Suite;
+		results: TestReportMetadata[];
+	} = null;
 
 	private _hasVisualTest: boolean = false;
 
-	private _numVisualRegressionTests: number = 0;
+	// private _numVisualRegressionTests: number = 0;
 
-	private _failingVisualRegressionTests: string[] = [];
+	// private _failingVisualRegressionTests: string[] = [];
 
 	constructor(config: ReportConfig) {
 		this.config = config;
@@ -129,7 +143,10 @@ class VisualRegression {
 	 */
 	newSuite(suite: Suite): void {
 		// track the current suite. If there are visual regression tests we'll add it to the report.
-		this._currentSuite = suite;
+		this._currentSuite = {
+			suite,
+			results: []
+		};
 		this._hasVisualTest = false;
 	}
 
@@ -176,6 +193,8 @@ class VisualRegression {
 	 * @param suite
 	 */
 	suiteEnd(suite: Suite): void {
+		console.log('suite end', this._currentSuite.results.length);
+		this.writeSuiteReport(suite, this._currentSuite.results);
 		this._currentSuite = null;
 		this._hasVisualTest = false;
 	}
@@ -202,8 +221,12 @@ class VisualRegression {
 	 * 2. optionally write the screenshot
 	 * 3. write report
 	 */
-	testFail(test: VisualRegressionTest): void {
-		this.writeTestReport(test);
+	testFail(test: VisualRegressionTest): Promise<void> {
+		return this.writeTestReport(test)
+			.then((metadata) => {
+				console.log('adding failed' + metadata.length);
+				this._currentSuite.results.splice(this._currentSuite.results.length, 0, ... metadata);
+			});
 	}
 
 	/**
@@ -211,33 +234,48 @@ class VisualRegression {
 	 * 2. optionally write the screenshot
 	 * 3. write report
 	 */
-	testPass(test: VisualRegressionTest): void {
-		this.writeTestReport(test);
+	testPass(test: VisualRegressionTest): Promise<void> {
+		return this.writeTestReport(test)
+			.then((metadata) => {
+				this._currentSuite.results.splice(this._currentSuite.results.length, 0, ... metadata);
+			});
 	}
 
 	/**
 	 * 1. write baseline
 	 * 2. write report
 	 */
-	testSkip(test: VisualRegressionTest): void {
-		// TODO write baseline (unless skipped by something else?)
-		this.writeTestReport(test);
+	testSkip(test: VisualRegressionTest): Promise<void> {
+		return this.writeTestReport(test)
+			.then((metadata) => {
+				this._currentSuite.results.splice(this._currentSuite.results.length, 0, ... metadata);
+			});
 	}
 
 	testStart(test: VisualRegressionTest): void {
 	}
 
-	protected writeTestReport(test: VisualRegressionTest): Promise<any> {
+	private writeSuiteReport(suite: Suite, results: TestReportMetadata[]): void {
+		if (!results || !results.length) {
+			return;
+		}
+
+		const htmlFilename = joinPath(this.reportLocation, getTestDirectory(suite), 'index.html');
+		// TODO write report HTML
+		// TODO include if test passed, or error message if ended in a failure
+		save(htmlFilename, '<html>');
+	}
+
+	private writeTestReport(test: VisualRegressionTest): Promise<TestReportMetadata[]> {
 		if (!test.visualReports || !test.visualReports.length) {
+			console.log('no reports');
 			return;
 		}
 
 		const reports: Report[] = test.visualReports;
 
-		const promises: Promise<void>[] = [];
-		const testDirectory = getTestDirectory(test);
-		for (let i = 0; i < reports.length; i++) {
-			const report: Report = reports[i];
+		const testDirectory = getTestDirectory(test.parent);
+		Promise.all<TestReportMetadata>(reports.map((report, i) => {
 			const fileSuffix = i > 0 ? String(i) : '';
 			const baselineName = getBaselineFilename(test, fileSuffix);
 			const differenceName = getDifferenceFilename(test, fileSuffix);
@@ -245,9 +283,15 @@ class VisualRegression {
 			const differenceFilename = joinPath(this.reportLocation, testDirectory, differenceName);
 			const snapshotFilename = joinPath(this.reportLocation, testDirectory, snapshotName);
 			let baselineFilename = joinPath(this.baselineLocation, testDirectory, baselineName);
+			const metadata: TestReportMetadata = {
+				baselineImage: baselineFilename,
+				isPassing: report.isPassing,
+				differenceImage: differenceFilename,
+				screenshotImage: null,
+				testDirectory
+			};
 
-			// TODO maybe turn this into async/await?
-			const promise = Promise.resolve()
+			return Promise.resolve()
 				.then(() => {
 					if (!report.isPassing && this.writeDifferenceImage) {
 						return saveDifferenceImage(report, differenceFilename, {
@@ -256,35 +300,31 @@ class VisualRegression {
 					}
 				})
 				.then(() => {
-					// TODO add ability to write the screenshot
-					switch (this.writeScreenshot) {
-						case 'fail':
-							if (!report.isPassing) {
-								console.log('TODO write screenshot', snapshotFilename);
-							}
-							break;
-						case 'always':
-							console.log('TODO write screenshot', snapshotFilename);
-							break;
+					if (this.writeScreenshot === 'fail' && !report.isPassing || this.writeScreenshot === 'always') {
+						if ((<BufferImageMetadata> report.actual).buffer) {
+							metadata.screenshotImage = snapshotFilename;
+							save(snapshotFilename, (<BufferImageMetadata> report.actual).buffer);
+						}
+						else {
+							this._globalNotes.push({
+								level: 'error',
+								message: `Failed to write screenshot "${ snapshotFilename }". Missing buffer.`,
+								type: 'image write'
+							});
+						}
 					}
 				})
 				.then(() => {
 					if (this.writeBaseline) {
 						const reportBaselineFilename = joinPath(this.reportLocation, testDirectory, baselineName);
-						// TODO copy the baseline file over
-						baselineFilename = reportBaselineFilename;
+						metadata.baselineImage = reportBaselineFilename;
+						return copy(baselineFilename, reportBaselineFilename);
 					}
+				})
+				.then(function () {
+					return metadata;
 				});
-			promises.push(promise);
-		}
-
-		return Promise.all(promises)
-			.then(() => {
-				const reportFilename = joinPath(this.reportLocation, testDirectory, 'index.html');
-				// TODO write report HTML
-				// TODO include if test passed, or error message if ended in a failure
-				console.log('writing report', reportFilename);
-			});
+		}));
 	}
 }
 

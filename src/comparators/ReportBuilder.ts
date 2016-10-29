@@ -44,10 +44,10 @@ export default class {
 			baseline: this.baseline,
 			differences: this._pixelDifferences,
 			hasDifferences: numDifferences > 0,
-			height: height,
+			height,
 			isPassing: percentMatching >= this.matchRatio,
 			numDifferences,
-			width: width
+			width,
 		};
 	}
 

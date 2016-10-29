@@ -129,6 +129,9 @@ module.exports = function (grunt) {
 			},
 			coverage: {
 				src: [ 'html-report/' ]
+			},
+			visualTest: {
+				src: [ 'visual-test/' ]
 			}
 		},
 
@@ -203,8 +206,15 @@ module.exports = function (grunt) {
 			self: {
 				options: {
 					reporters: [
+						'Runner',
 						{ id: 'src/reporters/VisualRegression' }
 					]
+				}
+			},
+			ci: {
+				options: {
+					config: '<%= devDirectory %>/tests/intern.ci',
+					reporters: [ 'Runner', { id: 'LcovHtml', directory: 'html-report' } ]
 				}
 			},
 			proxy: {
@@ -382,8 +392,9 @@ module.exports = function (grunt) {
 	]);
 
 	grunt.registerTask('lint', [ 'jshint', 'jscs', 'tslint' ]);
-	grunt.registerTask('test', [ 'build', 'intern:all' ]);
+	grunt.registerTask('test', [ 'clean', 'build', 'intern:all' ]);
 	grunt.registerTask('test-quick', [ 'build', 'intern:client' ]);
+	grunt.registerTask('test-ci', [ 'clean', 'lint', 'build', 'intern:ci' ]);
 	grunt.registerTask('publish', [ 'dist', 'gh-pages:publish' ]);
 	grunt.registerTask('default', [ 'clean', 'lint', 'build' ]);
 };

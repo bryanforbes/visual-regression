@@ -1,9 +1,12 @@
 import { PNG } from 'pngjs';
-import {ImageComparator, ImageReference, Report, ImageMetadata, RGBColor, RGBColorArray} from '../interfaces';
-import ImageComparison from './ImageComparison';
-import { createReadStream } from 'fs';
+import {
+	ImageComparator, ImageReference, Report, ImageMetadata, RGBColor, RGBColorArray,
+	CommonImageMetadata, DiskImageMetadata, BufferImageMetadata
+} from '../interfaces';
+import ImageComparison from './ReportBuilder';
 import config from '../config';
 import getRGBA from '../util/getRGBA';
+import { load } from '../util/file';
 
 export interface Options {
 	pixelSkip?: number;
@@ -76,12 +79,15 @@ export default class PngJsImageComparator implements ImageComparator {
 
 		return loadPromise
 			.then(function (png: PNG) {
-				const metadata: ImageMetadata = {
+				const metadata: CommonImageMetadata | ImageMetadata = {
 					height: png.height,
 					width: png.width
 				};
 				if (typeof image === 'string') {
-					metadata.filename = image;
+					(<DiskImageMetadata> metadata).filename = image;
+				}
+				else {
+					(<BufferImageMetadata> metadata).buffer = image;
 				}
 				return {
 					png,
@@ -90,18 +96,18 @@ export default class PngJsImageComparator implements ImageComparator {
 			});
 	}
 
-	private _loadPng(filename: string): Promise<PNG> {
+	private _loadPng(image: string): Promise<PNG> {
 		return new Promise(function (resolve, reject) {
 			const png = new PNG();
+			png.on('parsed', function () {
+				resolve(png);
+			});
+			png.on('error', function (error) {
+				reject(error);
+			});
 
-			createReadStream(filename)
-				.pipe(png)
-				.on('parsed', function () {
-					resolve(png);
-				})
-				.on('error', function (error: Error) {
-					reject(error);
-				});
+			load(image, png);
 		});
 	}
+
 }

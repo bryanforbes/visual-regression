@@ -1,68 +1,197 @@
 /// <reference path="../modules.d.ts" />
 
+import { existsSync } from 'fs';
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
 import { config, assertVisuals, util } from 'src/index';
 import { join as joinPath } from 'intern/dojo/node!path';
 import * as Test from 'intern/lib/Test';
 import { Report } from '../../src/interfaces';
-import { getBaselineFilename, getTestDirectory } from '../../src/util/file';
+import { getBaselineFilename, getTestDirectory, remove as removeFile } from '../../src/util/file';
 
-function getBaselinePath(test: Test, suffix: string = '') {
-	const testDirectory = getTestDirectory(test);
-	const baselineName = getBaselineFilename(test, suffix);
+const basicPageUrl = require.toUrl('../support/pages/basic.html');
+
+function getBaselinePath(test: Test) {
+	const testDirectory = getTestDirectory(test.parent);
+	const baselineName = getBaselineFilename(test);
 	return joinPath(config.directory, config.baselineLocation, testDirectory, baselineName);
 }
 
-function createBaseline(test: Test): (screenshot: Buffer) => void {
-	return function (screenshot: Buffer): void {
-		const filename = getBaselinePath(test);
-		util.saveFile(filename, screenshot);
+function initializePage(url: string = basicPageUrl) {
+	return function () {
+		return this.parent
+			.get(url)
+			.setWindowSize(1024, 768);  // set the window size
 	};
 }
 
-const basicPageUrl = require.toUrl('../support/pages/basic.html');
+function generateBaseline(test: Test): () => Promise<void> {
+	return function () {
+		return this.parent
+			.takeScreenshot()
+			.then(function (screenshot: Buffer) {
+				const filename = getBaselinePath(test);
+				util.file.save(filename, screenshot);
+			});
+	};
+}
+
+function doesBaselineExist(test: Test, expected?: boolean) {
+	return function () {
+		return new Promise(function (resolve) {
+			const filename = getBaselinePath(test);
+			const exists = existsSync(filename);
+			if (typeof expected === 'boolean') {
+				assert.equal(exists, expected);
+			}
+			resolve(exists);
+		});
+	};
+}
+
+function removeBaseline(test: Test) {
+	return function () {
+		const filename = getBaselinePath(test);
+		return removeFile(filename);
+	};
+}
 
 registerSuite({
 	name: 'programmatic',
 
-	basic() {
-		return this.remote
-			.get(basicPageUrl)
-			.setWindowSize(1024, 768)  // set the window size
-			.takeScreenshot()
-			.then(assertVisuals(this, {
-				missingBaseline: 'snapshot'
-			}))
-			.then(function (report: Report) {
-				assert.isTrue(report.isPassing);
-				assert.deepEqual(report.numDifferences, 0);
-			});
+	'no baselines generated': {
+		'defaults missingBaseline = skip; test is skipped'() {
+			const test = this;
+
+			return this.remote
+				.then(removeBaseline(test))
+				.then(initializePage())
+				.takeScreenshot()
+				.then(function (snapshot: Buffer) {
+					const action = assertVisuals(test);
+					let exception: Error = null;
+					try {
+						action.call(this, snapshot);
+					}
+					catch (e) {
+						exception = e;
+					}
+
+					assert.equal(exception, (<any> Test).SKIP);
+				})
+				.then(doesBaselineExist(test, false));
+		},
+
+		'missingBaseline = skip; test is skipped'() {
+			const test = this;
+
+			return this.remote
+				.then(removeBaseline(test))
+				.then(initializePage())
+				.takeScreenshot()
+				.then(function (snapshot: Buffer) {
+					const action = assertVisuals(test, {
+						missingBaseline: 'skip'
+					});
+					let exception: Error = null;
+					try {
+						action.call(this, snapshot);
+					}
+					catch (e) {
+						exception = e;
+					}
+
+					assert.equal(exception, (<any> Test).SKIP);
+				})
+				.then(doesBaselineExist(test, false));
+		},
+
+		'missingBaseline = snapshop; test passes, a snapshot is generated'() {
+			const test = this;
+
+			return this.remote
+				.then(removeBaseline(test))
+				.then(initializePage())
+				.takeScreenshot()
+				.then(function (snapshot: Buffer) {
+					const action = assertVisuals(test, {
+						missingBaseline: 'snapshot'
+					});
+					let exception: Error = null;
+					try {
+						action.call(this, snapshot);
+					}
+					catch (e) {
+						exception = e;
+					}
+
+					assert.equal(exception, (<any> Test).SKIP);
+				})
+				.then(doesBaselineExist(test, true));
+		},
+
+		'missingBaseline = fail; tests fails'() {
+			const test = this;
+
+			return this.remote
+				.then(removeBaseline(test))
+				.then(initializePage())
+				.takeScreenshot()
+				.then(function (snapshot: Buffer) {
+					assert.throws(function () {
+						const action = assertVisuals(test, {
+							missingBaseline: 'fail'
+						});
+						action.call(this, snapshot);
+					}, 'missing baseline');
+				})
+				.then(doesBaselineExist(test, false));
+		}
 	},
 
-	difference() {
-		return this.remote
-			.get(basicPageUrl)
-			.setWindowSize(1024, 768)  // set the window size
-			.takeScreenshot()
-			.then(createBaseline(this))
-			.execute(function () {
-				var p = document.querySelector('#container > p');
-				p.textContent = 'hello';
-			})
-			.takeScreenshot()
-			.then((screenshot: Buffer): Buffer => {
-				var filename = getBaselineFilename(this, '.actual');
-				util.saveFile(filename + '.actual.png', screenshot);
-				return screenshot;
-			})
-			.then(assertVisuals(this, {
-				missingBaseline: 'fail'
-			}))
-			.then(function () {
-				throw('Expected mismatch');
-			}, function (error: Error) {
-				assert.property(error, 'report', 'report is missing');
-			});
+	'preexisting baselines': {
+		'snapshot matches baseline; test passes'() {
+			const test = this;
+
+			return this.remote
+				.then(initializePage())
+				.then(generateBaseline(test))
+				.takeScreenshot()
+				.then(assertVisuals(test, {
+					missingBaseline: 'fail'
+				}))
+				.then(function (report: Report) {
+					assert.property(test, 'visualReports');
+					assert.lengthOf(test.visualReports, 1);
+					assert.isTrue(report.isPassing);
+					assert.deepEqual(report.numDifferences, 0);
+				});
+		},
+
+		'snapshot does not match baseline; test fails'() {
+			const test = this;
+
+			return this.remote
+				.then(initializePage())
+				.then(generateBaseline(test))
+				.execute(function () {
+					var p = document.querySelector('#container > p');
+					p.textContent = 'hello';
+				})
+				.takeScreenshot()
+				.then((screenshot: Buffer): Buffer => {
+					var filename = getBaselineFilename(test, '.actual');
+					util.file.save(filename + '.actual.png', screenshot);
+					return screenshot;
+				})
+				.then(assertVisuals(this, {
+					missingBaseline: 'fail'
+				}))
+				.then(function () {
+					throw('Expected mismatch');
+				}, function (error: Error) {
+					assert.property(error, 'report', `report is missing. ${ error.message }`);
+				});
+		}
 	}
 });

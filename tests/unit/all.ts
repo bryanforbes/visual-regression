@@ -1,2 +1,2 @@
-import './util/file';
-import './reporters/VisualRegression';
+import 'intern/dojo/has!client-browser?./util/file';
+import 'intern/dojo/has!client-browser?./reporters/VisualRegression';

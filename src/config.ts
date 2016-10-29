@@ -1,7 +1,7 @@
 import * as intern from 'intern';
 import { mixin } from 'dojo/lang';
 import { Options as ComparatorOptions } from './comparators/PngJsImageComparator';
-import { Options as ComparisonOptions } from './comparators/ImageComparison';
+import { Options as ComparisonOptions } from './comparators/ReportBuilder';
 import { Options as AssertOptions } from './assert';
 import { Options as ReportOptions } from './reporters/interfaces';
 
