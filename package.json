@@ -20,7 +20,7 @@
     "url": "https://github.com/devpaul/visual-regression/issues"
   },
   "peerDependencies": {
-    "intern": "~3.2"
+    "intern": ">=3.0.0"
   },
   "devDependencies": {
     "dojo-loader": "^2.0.0-beta.7",
