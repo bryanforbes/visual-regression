@@ -11,9 +11,9 @@ import { getBaselineFilename, getTestDirectory, remove as removeFile } from '../
 
 const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
-function getBaselinePath(test: Test) {
+function getBaselinePath(test: Test, suffix?: string) {
 	const testDirectory = getTestDirectory(test.parent);
-	const baselineName = getBaselineFilename(test);
+	const baselineName = getBaselineFilename(test, suffix);
 	return joinPath(config.directory, config.baselineLocation, testDirectory, baselineName);
 }
 
@@ -25,13 +25,14 @@ function initializePage(url: string = basicPageUrl) {
 	};
 }
 
-function generateBaseline(test: Test): () => Promise<void> {
+function generateBaseline(test: Test, suffix?: string): () => Promise<Buffer> {
 	return function () {
 		return this.parent
 			.takeScreenshot()
 			.then(function (screenshot: Buffer) {
-				const filename = getBaselinePath(test);
+				const filename = getBaselinePath(test, suffix);
 				util.file.save(filename, screenshot);
+				return screenshot;
 			});
 	};
 }
@@ -178,12 +179,7 @@ registerSuite({
 					var p = document.querySelector('#container > p');
 					p.textContent = 'hello';
 				})
-				.takeScreenshot()
-				.then((screenshot: Buffer): Buffer => {
-					var filename = getBaselineFilename(test, '.actual');
-					util.file.save(filename + '.actual.png', screenshot);
-					return screenshot;
-				})
+				.then(generateBaseline(test, '.actual'))
 				.then(assertVisuals(this, {
 					missingBaseline: 'fail'
 				}))
