@@ -1,7 +1,7 @@
 import { join as joinPath } from 'path';
 import globalConfig from '../config';
 import Suite = require('intern/lib/Suite');
-import {VisualRegressionTest, Report, RGBAColorArray, BufferImageMetadata} from '../interfaces';
+import { RGBAColorArray, BufferImageMetadata} from '../interfaces';
 import {
 	getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename,
 	save, copy
@@ -10,6 +10,7 @@ import { ReportConfig } from './interfaces';
 import { getErrorMessage } from 'intern/lib/util';
 import saveDifferenceImage from './saveDifferenceImage';
 import getRGBA from '../util/getRGBA';
+import {VisualRegressionTest, AssertionResult} from '../assert';
 
 interface Note {
 	level: 'info' | 'warn' | 'error' | 'fatal';
@@ -267,15 +268,19 @@ class VisualRegression {
 	}
 
 	private writeTestReport(test: VisualRegressionTest): Promise<TestReportMetadata[]> {
-		if (!test.visualReports || !test.visualReports.length) {
-			console.log('no reports');
+		if (!test.visualResults || !test.visualResults.length) {
 			return;
 		}
 
-		const reports: Report[] = test.visualReports;
+		const results: AssertionResult[] = test.visualResults;
 
 		const testDirectory = getTestDirectory(test.parent);
-		Promise.all<TestReportMetadata>(reports.map((report, i) => {
+		Promise.all<TestReportMetadata>(results.map((result, i) => {
+			if (!result.report) {
+				return null;
+			}
+
+			const report = result.report;
 			const fileSuffix = i > 0 ? String(i) : '';
 			const baselineName = getBaselineFilename(test, fileSuffix);
 			const differenceName = getDifferenceFilename(test, fileSuffix);

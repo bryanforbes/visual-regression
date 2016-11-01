@@ -4,14 +4,26 @@ import { getTestDirectory, getBaselineFilename, save } from './util/file';
 import Test = require('intern/lib/Test');
 import ImageComparator from './comparators/PngJsImageComparator';
 import LeadfootCommand = require('leadfoot/Command');
-import { VisualRegressionTest, Report } from './interfaces';
+import { Report } from './interfaces';
 import config from './config';
 import VisualRegressionError from './VisualRegressionError';
 
 export interface Options {
 	baselineLocation?: string;
 	directory?: string;
-	missingBaseline?: 'skip' | 'snapshot' | 'fail';
+	missingBaseline?: 'fail' | 'ignore' | 'skip' | 'snapshot';
+}
+
+export interface AssertionResult {
+	baseline: string;
+	baselineFound: boolean;
+	options: Options;
+	report?: Report;
+	screenshot: Buffer;
+}
+
+export interface VisualRegressionTest extends Test {
+	visualResults?: AssertionResult[];
 }
 
 /**
@@ -30,16 +42,25 @@ export default function assertVisuals(test: Test, options: Options = config) {
 		const testDirectory: string = getTestDirectory(test.parent);
 		const baselineName: string = getBaselineFilename(test);
 		const baselineFilename: string = pathJoin(directory, baselineLocation, testDirectory, baselineName);
+		const baselineFound: boolean = existsSync(baselineFilename);
+		const result: AssertionResult = {
+			baseline: baselineFilename,
+			baselineFound,
+			options,
+			screenshot
+		};
 
-		if (existsSync(baselineFilename)) {
+		const results = (<VisualRegressionTest> test).visualResults =
+			(<VisualRegressionTest> test).visualResults || [];
+		results.push(result);
+
+		if (baselineFound) {
 			const comparator = new ImageComparator();
 
 			return comparator.compare(baselineFilename, screenshot)
 				.then(function (report) {
 					// Add the report to the current test for later processing by the Reporter
-					const reports = (<VisualRegressionTest> test).visualReports =
-						(<VisualRegressionTest> test).visualReports || [];
-					reports.push(report);
+					result.report = report;
 
 					if (!report.isPassing) {
 						throw new VisualRegressionError('failed visual regression', report);
@@ -50,6 +71,8 @@ export default function assertVisuals(test: Test, options: Options = config) {
 		}
 		else {
 			switch (options.missingBaseline || config.missingBaseline) {
+				case 'ignore':
+					return;
 				case 'skip':
 					throw test.skip('missing baseline');
 				case 'snapshot':

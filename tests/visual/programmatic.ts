@@ -162,8 +162,8 @@ registerSuite({
 					missingBaseline: 'fail'
 				}))
 				.then(function (report: Report) {
-					assert.property(test, 'visualReports');
-					assert.lengthOf(test.visualReports, 1);
+					assert.property(test, 'visualResults');
+					assert.lengthOf(test.visualResults, 1);
 					assert.isTrue(report.isPassing);
 					assert.deepEqual(report.numDifferences, 0);
 				});

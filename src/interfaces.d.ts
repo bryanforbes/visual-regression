@@ -1,5 +1,4 @@
 import Command = require('leadfoot/Command');
-import Test = require('intern/lib/Test');
 
 declare type CommandHelper = () => Command<any>;
 
@@ -46,10 +45,6 @@ export interface Report {
 	isPassing: boolean;
 	numDifferences: number;
 	width: number;
-}
-
-export interface VisualRegressionTest extends Test {
-	visualReports?: Report[];
 }
 
 export interface ImageAdapter {
