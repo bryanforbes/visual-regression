@@ -1,14 +1,15 @@
 sudo: false
 language: node_js
 node_js:
-  - '0.12'
-  - '6'
+- '0.12'
+- '6'
 env:
   global:
-    secure: FQxrT+Klxpki/ErcYEy++BsB8oHX8l1TXmIyTAH99DSrCpG43HoP9ufUw3fRSSaIpbfHWb7uNmPIB7NsqWQhzME8XhQwQ7MW7W8RHRsqMcuSDxbZK8d6YaTv90Ufeeo1HRS7jpZSn2SkojgQPsLDBWQZU0eOj66JOEuvpsxEm6/v4off/Mr5QDjmfNinDFeGsuJJmfbEHjyHmsMj5EUe3OCZR7xIZgiXAL2KKR7bWTeMf0meVphpcTb7WbPG5teZYR0egDLIUPuNvB8rYKHlHeBLGFuv7wqhafkzJeuj8UazYUd+glWqYO74estxRfxpiNGZNbcmpMEmP8X0CyHMJ4ta2otqVdsv7s8FhUXEJiSSPAzUhI9qk/kRdNhTgfHIUDF6Tdb339aah57///CLLphFVeogicMHTj0EUcDQXYQlYPbDq68i14spFGwGwQf81mHe4DkVp2pBwyTpBOwvtpyQwi2przOY8FIt7jNvP+5Sx+RT+0pkT/zNQVdmTrU3uGf+22cZDLsBuhMIRh7lFkFhiQSm92aOveeoaRM4CQvF3th6lDx16LChaVLngdgrGSf2Rus80r2FwD1m9AcyiDv34LDhD0e15QhFhoNzHb2ZNrkPREuFoMN1UtmNex0hXWOyOVJ3Il46an8R4Lw8rgeK/g8IDWO2yjZwm2lsJOY=
+  - SAUCE_USERNAME=devpaul
+  - secure: DzKXMmyy+ETDJKoMiE1lEyiV1y1es694WPU0bizcgYSAq8eP7ln0FyGJoQ2VYibEYiedrxOwNijT/1o76VttYKO4R31+Lno35VF9zXisOmP3hrtFhKgIz7u0low7J1otC0AKO1Kbz36kFIA7bHxUGJB69ANDf5q5REu3vLKBGtM3/daOxQozEtBadK8EeVkOliHZ857Ebu+iUnxanatyme1vFcMkpydSrz4pWLy9KN7mY15Gogr8Tz/eSm4yfc1WidEMLXJqx9YxdN8L5IYLJfdZegOKF9h/zFxK/X2Qrlamb50BRwdKkAcg3nB2ByQom41O/DIPx84KYA7/tLAzvOdbF3H4lbR5stKJtmWyW9aBI10OsJszng1r78fSHW+Fq3NW08QuCRHts8i2H0QnMB2hzivM24kCIKi1a9hdZphEVBsyJ8b+1+9W1r3kAVC9wWq+C6MIInz2dtKxQhGE5FNC/WPJqFzGKHtXjCSHkbPwXB30M7H1vWPxhmfNgKECgkpN9MSjHqsm+25ls5AJ0oKKqvmdWt5pho3/wy8RIti5elQzpwPj8vbil1qhPZJhgtyVbOphuA8oZQs9bVCssYvkDbUn7+UfhuQHX9alOSbNEYwa2jHIRyPzI+3HU7vjwLzOCkla74zhw1rKTngzpwCGRLuzsgOKdXMfdynBJXA=
 cache:
   directories:
-    - node_modules
+  - node_modules
 before_script:
-   - npm install -g grunt-cli
+- npm install -g grunt-cli
 script: grunt test-ci
