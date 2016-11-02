@@ -1,5 +1,5 @@
 import { PNG, PNGOptions } from 'pngjs';
-import {Report, RGBAColorArray, RGBColor, RGBAColor} from '../interfaces';
+import { Report, RGBAColorArray, RGBColor, RGBAColor } from '../../interfaces';
 import { dirname } from 'path';
 import { createWriteStream } from 'fs';
 import mkdirp = require('mkdirp');
