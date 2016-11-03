@@ -43,6 +43,26 @@ export default function(width: number, height: number) {
 
 				return this.parent
 					.setWindowSize(width, height);
+			})
+			.executeAsync(function (done: (result: any) => void) {
+				// wait for any sort of animated window resize to complete
+				let lastWidth: number;
+				let lastHeight: number;
+
+				function update() {
+					lastWidth = window.innerWidth;
+					lastHeight = window.innerHeight;
+				}
+
+				update();
+
+				const handle = setInterval(function () {
+					if (lastWidth === window.innerWidth && lastHeight === window.innerHeight) {
+						clearInterval(handle);
+						done([ lastWidth, lastHeight ]);
+					}
+					update();
+				}, 100);
 			});
 	};
 }
