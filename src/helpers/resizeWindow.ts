@@ -44,6 +44,7 @@ export default function(width: number, height: number) {
 				return this.parent
 					.setWindowSize(width, height);
 			})
+			.setExecuteAsyncTimeout(5000)
 			.executeAsync(function (done: (result: any) => void) {
 				// wait for any sort of animated window resize to complete
 				let lastWidth: number;
