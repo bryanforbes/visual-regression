@@ -6,8 +6,8 @@ import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
 import { config, assertVisuals, util } from 'src/index';
 import * as Test from 'intern/lib/Test';
-import { getBaselineFilename, getTestDirectory, remove as removeFile } from '../../src/util/file';
-import {AssertionResult} from '../../src/assert';
+import { getBaselineFilename, getTestDirectory, remove as removeFile } from 'src/util/file';
+import { AssertionResult, VisualRegressionTest } from 'src/assert';
 
 const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
@@ -64,7 +64,7 @@ registerSuite({
 
 	'no baselines generated': {
 		'defaults missingBaseline = skip; test is skipped'() {
-			const test = this;
+			const test: VisualRegressionTest = this;
 
 			return this.remote
 				.then(removeBaseline(test))
@@ -80,13 +80,14 @@ registerSuite({
 						exception = e;
 					}
 
+					assert.lengthOf(test.visualResults, 1);
 					assert.equal(exception, (<any> Test).SKIP);
 				})
 				.then(doesBaselineExist(test, false));
 		},
 
 		'missingBaseline = skip; test is skipped'() {
-			const test = this;
+			const test: VisualRegressionTest = this;
 
 			return this.remote
 				.then(removeBaseline(test))
@@ -104,6 +105,7 @@ registerSuite({
 						exception = e;
 					}
 
+					assert.lengthOf(test.visualResults, 1);
 					assert.equal(exception, (<any> Test).SKIP);
 				})
 				.then(doesBaselineExist(test, false));
@@ -120,6 +122,7 @@ registerSuite({
 					missingBaseline: 'snapshot'
 				}))
 				.then(function (result: AssertionResult) {
+					assert.lengthOf(test.visualResults, 1);
 					assert.isFalse(result.baselineExists);
 					assert.isTrue(result.generatedBaseline);
 					assert.isNull(result.report);
@@ -141,6 +144,7 @@ registerSuite({
 						});
 						action.call(this, snapshot);
 					}, 'missing baseline');
+					assert.lengthOf(test.visualResults, 1);
 				})
 				.then(doesBaselineExist(test, false));
 		}
@@ -163,6 +167,7 @@ registerSuite({
 					assert.lengthOf(test.visualResults, 1);
 					assert.isTrue(report.isPassing);
 					assert.strictEqual(report.numDifferences, 0);
+					assert.lengthOf(test.visualResults, 1);
 				});
 		},
 
@@ -183,6 +188,7 @@ registerSuite({
 				.then(function () {
 					throw('Expected mismatch');
 				}, function (error: Error) {
+					assert.lengthOf(test.visualResults, 1);
 					assert.property(error, 'report', `report is missing. ${ error.message }`);
 				});
 		}

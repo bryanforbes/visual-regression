@@ -110,9 +110,6 @@ class VisualRegression {
 	}
 
 	testEnd(test: VisualRegressionTest): void {
-		// Free up any lingering data (i.e. screenshot buffers)
-		delete test.visualResults;
-		test.visualResults = null;
 	}
 
 	/**
