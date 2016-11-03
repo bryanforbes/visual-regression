@@ -116,7 +116,9 @@ registerSuite({
 				.then(removeBaseline(test))
 				.then(initializePage())
 				.takeScreenshot()
-				.then(assertVisuals(test))
+				.then(assertVisuals(test, {
+					missingBaseline: 'snapshot'
+				}))
 				.then(function (result: AssertionResult) {
 					assert.isFalse(result.baselineExists);
 					assert.isTrue(result.generatedBaseline);

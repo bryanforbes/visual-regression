@@ -2,7 +2,7 @@ import { join as joinPath, extname, basename } from 'path';
 import { VisualRegressionTest, AssertionResult } from '../../assert';
 import globalConfig from '../../config';
 import getRGBA from '../../util/getRGBA';
-import { RGBAColorArray, BufferImageMetadata } from '../../interfaces';
+import { RGBAColorArray } from '../../interfaces';
 import saveDifferenceImage from './saveDifferenceImage';
 import { getTestDirectory, save, copy }
 	from '../../util/file';
@@ -16,9 +16,6 @@ export interface Options {
 	reportLocation?: string;
 	directory?: string;
 	reportUnusedBaselines?: boolean;
-	writeDifferenceImage?: boolean;
-	writeReport?: boolean;
-	writeScreenshot?: 'never' | 'fail' | 'always';
 }
 
 export interface ReportConfig extends Options {
@@ -40,7 +37,7 @@ interface TestMetadata {
 	screenshot?: string;
 }
 
-export function addSuffix(filename: string, suffix: string): string {
+export function addSuffix(filename: string, suffix: string = ''): string {
 	const extension = extname(filename);
 	const base = basename(filename, extension);
 	return base + suffix + extension;
@@ -126,16 +123,6 @@ export default class {
 	private reportUnusedBaselines: boolean = false;
 
 	/**
-	 * If the reporter should output the difference image of a failed test
-	 */
-	private writeDifferenceImage: boolean;
-
-	/**
-	 * If the reporter should output the screenshot of a failed test
-	 */
-	private writeScreenshot: string;
-
-	/**
 	 * Notes exported to index.html
 	 * @private
 	 */
@@ -151,10 +138,6 @@ export default class {
 		this.reportLocation = constructDirectory(baseDirectory, reportLocation);
 		this.reportUnusedBaselines = 'reportUnusedBaselines' in config ?
 			config.reportUnusedBaselines : globalConfig.report.reportUnusedBaselines;
-		this.writeDifferenceImage = 'writeDifferenceImage' in config ?
-			config.writeDifferenceImage : globalConfig.report.writeDifferenceImage;
-		this.writeScreenshot = 'writeScreenshot' in config ?
-			config.writeScreenshot : globalConfig.report.writeScreenshot;
 
 		this.errorColor = getRGBA(config.errorColor || '#F00');
 	}
@@ -194,7 +177,7 @@ export default class {
 
 			return Promise.resolve()
 				.then(() => { // Write difference image
-					if (!report.isPassing && this.writeDifferenceImage) {
+					if (!report.isPassing) {
 						const difference = metadata.difference = addSuffix(result.baseline, '-diff');
 
 						return saveDifferenceImage(report, joinPath(directory, difference), {
@@ -203,12 +186,10 @@ export default class {
 					}
 				})
 				.then(() => { // Write screenshot
-					if (this.writeScreenshot === 'fail' && !report.isPassing || this.writeScreenshot === 'always') {
-						const screenshot: Buffer = (<BufferImageMetadata> report.actual).buffer;
-
-						if (screenshot) {
+					if (!report.isPassing) {
+						if (result.screenshot) {
 							const screenshot = metadata.screenshot = addSuffix(result.baseline, '-actual');
-							return save(joinPath(directory, screenshot), (<BufferImageMetadata> report.actual).buffer);
+							return save(joinPath(directory, screenshot), result.screenshot);
 						}
 						else {
 							this.addNote({
@@ -220,10 +201,14 @@ export default class {
 					}
 				})
 				.then(() => { // write baseline image
-					const source = joinPath(result.directory, result.baseline);
-					const target = joinPath(this.reportLocation, result.baseline);
-					metadata.baseline = result.baseline;
+					const source = result.baseline;
+					const target = joinPath(directory, addSuffix(result.baseline));
+					metadata.baseline = target;
 					return copy(source, target);
+				})
+				.then(() => {
+					// Replace screenshot with a filename to avoid leaking memory
+					result.screenshot = metadata.screenshot;
 				});
 		}));
 	}

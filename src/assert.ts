@@ -20,10 +20,10 @@ export interface AssertionResult {
 	baseline: string;
 	baselineExists: boolean;
 	count: number;
-	directory: string;
 	generatedBaseline: boolean;
 	options: Options;
 	report: Report;
+	screenshot: Buffer | string;
 }
 
 export interface VisualRegressionTest extends Test {
@@ -68,11 +68,11 @@ export default function assertVisuals(test: VisualRegressionTest, options: Optio
 			test.visualResults = [];
 		}
 		const count = test.visualResults.length;
-		const directory: string = options.directory || config.directory;
 		const testDirectory: string = getTestDirectory(test.parent);
 
 		let baseline = options.baseline;
 		if (!baseline) {
+			const directory: string = options.directory || config.directory;
 			const baselineName = getBaselineFilename(test, count);
 			const baselineLocation: string = options.baselineLocation || config.baselineLocation;
 			const baselineRelative: string = pathJoin(baselineLocation, testDirectory, baselineName);
@@ -81,13 +81,13 @@ export default function assertVisuals(test: VisualRegressionTest, options: Optio
 
 		const baselineExists: boolean = existsSync(baseline);
 		const result: AssertionResult = {
-			directory,
 			baseline,
 			baselineExists,
 			count,
 			generatedBaseline: false,
 			options,
-			report: null
+			report: null,
+			screenshot
 		};
 
 		test.visualResults.push(result);

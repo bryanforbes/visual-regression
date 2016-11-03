@@ -21,17 +21,14 @@ export type RGBColorArray = [ number, number, number ];
 export type RGBAColorArray = [ number, number, number, number ];
 export type ColorArray = RGBAColorArray | RGBColor;
 
-export type ImageMetadata = DiskImageMetadata | BufferImageMetadata;
-
-export interface DiskImageMetadata extends CommonImageMetadata {
-	filename: string;
+export interface ImageAdapter {
+	save(filename: string): Promise<void>;
+	export(): Promise<Buffer>;
 }
 
-export interface BufferImageMetadata extends CommonImageMetadata {
-	buffer: Buffer;
-}
+export type ImageReference = Buffer | string;
 
-export interface CommonImageMetadata {
+export interface ImageMetadata {
 	height: number;
 	width: number;
 }
@@ -46,13 +43,6 @@ export interface Report {
 	numDifferences: number;
 	width: number;
 }
-
-export interface ImageAdapter {
-	save(filename: string): Promise<void>;
-	export(): Promise<Buffer>;
-}
-
-export type ImageReference = Buffer | string;
 
 export interface ImageComparator {
 	compare(baseline: ImageReference, actual: ImageReference): Promise<Report>;

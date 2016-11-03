@@ -1,8 +1,5 @@
 import { PNG } from 'pngjs';
-import {
-	ImageComparator, ImageReference, Report, ImageMetadata, RGBColor, RGBColorArray,
-	CommonImageMetadata, DiskImageMetadata, BufferImageMetadata
-} from '../interfaces';
+import { ImageComparator, ImageReference, RGBColor, RGBColorArray, Report, ImageMetadata } from '../interfaces';
 import ImageComparison from './ReportBuilder';
 import config from '../config';
 import getRGBA from '../util/getRGBA';
@@ -79,19 +76,12 @@ export default class PngJsImageComparator implements ImageComparator {
 
 		return loadPromise
 			.then(function (png: PNG) {
-				const metadata: CommonImageMetadata | ImageMetadata = {
-					height: png.height,
-					width: png.width
-				};
-				if (typeof image === 'string') {
-					(<DiskImageMetadata> metadata).filename = image;
-				}
-				else {
-					(<BufferImageMetadata> metadata).buffer = image;
-				}
 				return {
 					png,
-					metadata
+					metadata: {
+						height: png.height,
+						width: png.width
+					}
 				};
 			});
 	}

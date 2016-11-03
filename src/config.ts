@@ -33,12 +33,6 @@ const defaults: Config = {
 		reportLocation: 'report',
 
 		reportUnusedBaselines: false,
-
-		writeDifferenceImage: true,
-
-		writeReport: true,
-
-		writeScreenshot: 'fail'
 	}
 };
 
