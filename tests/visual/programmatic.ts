@@ -8,6 +8,7 @@ import { config, assertVisuals, util } from 'src/index';
 import * as Test from 'intern/lib/Test';
 import { getBaselineFilename, getTestDirectory, remove as removeFile } from 'src/util/file';
 import { AssertionResult, VisualRegressionTest } from 'src/assert';
+import resizeWindow from 'src/helpers/resizeWindow';
 
 const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
@@ -24,7 +25,7 @@ function initializePage(url: string = basicPageUrl) {
 	return function () {
 		return this.parent
 			.get(url)
-			.setWindowSize(1024, 768);  // set the window size
+			.then(resizeWindow(1024, 768));
 	};
 }
 

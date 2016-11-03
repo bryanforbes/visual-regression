@@ -54,6 +54,7 @@ registerSuite({
         this.remote()
             .get('https://sitepen.com')
             .setWindowSize(1024, 768)  // set the window size
+            .takeScreenshot()
             .then(assertVisuals(this, {
                 missingBaseline: 'snapshot'
             }));
