@@ -1,19 +1,22 @@
 /// <reference path="../modules.d.ts" />
 
 import { existsSync } from 'fs';
+import { join as joinPath } from 'path';
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
 import { config, assertVisuals, util } from 'src/index';
-import { join as joinPath } from 'intern/dojo/node!path';
 import * as Test from 'intern/lib/Test';
-import { Report } from '../../src/interfaces';
 import { getBaselineFilename, getTestDirectory, remove as removeFile } from '../../src/util/file';
+import {AssertionResult} from '../../src/assert';
 
 const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
 function getBaselinePath(test: Test, suffix?: string) {
 	const testDirectory = getTestDirectory(test.parent);
-	const baselineName = getBaselineFilename(test, suffix);
+	let baselineName = getBaselineFilename(test);
+	if (suffix) {
+		baselineName = baselineName.slice(0, -4) + suffix + '.png';
+	}
 	return joinPath(config.directory, config.baselineLocation, testDirectory, baselineName);
 }
 
@@ -25,13 +28,12 @@ function initializePage(url: string = basicPageUrl) {
 	};
 }
 
-function generateBaseline(test: Test, suffix?: string): () => Promise<Buffer> {
+function generateBaseline(baseline: string): () => Promise<Buffer> {
 	return function () {
 		return this.parent
 			.takeScreenshot()
 			.then(function (screenshot: Buffer) {
-				const filename = getBaselinePath(test, suffix);
-				util.file.save(filename, screenshot);
+				util.file.save(baseline, screenshot);
 				return screenshot;
 			});
 	};
@@ -114,19 +116,11 @@ registerSuite({
 				.then(removeBaseline(test))
 				.then(initializePage())
 				.takeScreenshot()
-				.then(function (snapshot: Buffer) {
-					const action = assertVisuals(test, {
-						missingBaseline: 'snapshot'
-					});
-					let exception: Error = null;
-					try {
-						action.call(this, snapshot);
-					}
-					catch (e) {
-						exception = e;
-					}
-
-					assert.equal(exception, (<any> Test).SKIP);
+				.then(assertVisuals(test))
+				.then(function (result: AssertionResult) {
+					assert.isFalse(result.baselineExists);
+					assert.isTrue(result.generatedBaseline);
+					assert.isNull(result.report);
 				})
 				.then(doesBaselineExist(test, true));
 		},
@@ -156,16 +150,17 @@ registerSuite({
 
 			return this.remote
 				.then(initializePage())
-				.then(generateBaseline(test))
+				.then(generateBaseline(getBaselinePath(test)))
 				.takeScreenshot()
 				.then(assertVisuals(test, {
 					missingBaseline: 'fail'
 				}))
-				.then(function (report: Report) {
+				.then(function (result: AssertionResult) {
+					const report = result.report;
 					assert.property(test, 'visualResults');
 					assert.lengthOf(test.visualResults, 1);
 					assert.isTrue(report.isPassing);
-					assert.deepEqual(report.numDifferences, 0);
+					assert.strictEqual(report.numDifferences, 0);
 				});
 		},
 
@@ -174,12 +169,12 @@ registerSuite({
 
 			return this.remote
 				.then(initializePage())
-				.then(generateBaseline(test))
+				.then(generateBaseline(getBaselinePath(test)))
 				.execute(function () {
 					var p = document.querySelector('#container > p');
 					p.textContent = 'hello';
 				})
-				.then(generateBaseline(test, '.actual'))
+				.then(generateBaseline(getBaselinePath(test, '.actual')))
 				.then(assertVisuals(this, {
 					missingBaseline: 'fail'
 				}))

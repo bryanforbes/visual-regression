@@ -72,7 +72,7 @@ class VisualRegression {
 	 * @param executor
 	 */
 	runEnd(): void {
-		this.reportWriter.writeRoot();
+		this.reportWriter.end();
 	}
 
 	/**
@@ -88,8 +88,8 @@ class VisualRegression {
 	 * This method is called when a test suite has finished running.
 	 * @param suite
 	 */
-	suiteEnd(suite: Suite): void {
-		this.reportWriter.writeSuite(suite);
+	suiteEnd(suite: Suite): Promise<any> {
+		return this.reportWriter.writeSuite(suite);
 	}
 
 	/**

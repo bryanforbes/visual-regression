@@ -6,12 +6,11 @@ var TASKS = [
 	'grunt-contrib-copy',
 	'grunt-contrib-watch',
 	'grunt-contrib-jshint',
-	'grunt-gh-pages',
+	'grunt-contrib-stylus',
 	'grunt-jscs',
 	'grunt-text-replace',
 	'grunt-ts',
 	'grunt-tslint',
-	'grunt-shell',
 	'intern'
 ];
 
@@ -165,24 +164,10 @@ module.exports = function (grunt) {
 			}
 		},
 
-		'gh-pages': {
-			publish: {
-				options: {
-					base: '<%= distDirectory %>',
-					push: true
-				},
-
-				src: [ '**/*' ]
-			}
-		},
-
-		shell: {
-			prune: {
-				command: 'npm prune --production',
-				options: {
-					execOptions: {
-						cwd: '<%= distDirectory %>'
-					}
+		stylus: {
+			compile: {
+				files: {
+					'<%= devDirectory %>/src/reporters/util/assets/main.css': 'src/reporters/util/assets/main.styl'
 				}
 			}
 		},
@@ -374,6 +359,7 @@ module.exports = function (grunt) {
 	 */
 	grunt.registerTask('build', [
 		'ts:dev',
+		'stylus',
 		'copy:staticSiteFiles',
 		'copy:staticTestFiles',
 		'replace:addIstanbulIgnore'
@@ -395,6 +381,7 @@ module.exports = function (grunt) {
 	grunt.registerTask('test', [ 'clean', 'build', 'intern:all' ]);
 	grunt.registerTask('test-quick', [ 'build', 'intern:client' ]);
 	grunt.registerTask('test-ci', [ 'clean', 'lint', 'build', 'intern:ci' ]);
+	grunt.registerTask('test-self', [ 'clean', 'lint', 'build', 'intern:self' ]);
 	grunt.registerTask('publish', [ 'dist', 'gh-pages:publish' ]);
 	grunt.registerTask('default', [ 'clean', 'lint', 'build' ]);
 };

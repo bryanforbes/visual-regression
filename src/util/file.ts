@@ -1,5 +1,5 @@
-import { writeFileSync, createReadStream, createWriteStream, unlink } from 'fs';
-import { sync as mkdirSync } from 'mkdirp';
+import { writeFile, createReadStream, createWriteStream, unlink } from 'fs';
+import * as mkdirp from 'mkdirp';
 import { dirname } from 'path';
 import Test = require('intern/lib/Test');
 import WritableStream = NodeJS.WritableStream;
@@ -38,48 +38,51 @@ export function getTestDirectory(current: Hierarchy, includeBrowser: boolean = f
 	return sanatizeFilename(name.join('/'));
 }
 
-export function getBaselineFilename(test: Test, suffix: string = '') {
+export function getBaselineFilename(test: Test, count: number = 0) {
+	const suffix = count ? `_${ count }` : '';
 	return sanatizeFilename(`${ test.name }${ suffix }.png`);
 }
 
-export function getSnapshotFilename(test: Test, suffix: string = '') {
-	return sanatizeFilename(`${ test.name }-snapshot${ suffix }.png`);
+export function mkdir(directory: string): Promise<any> {
+	return new Promise(function (resolve, reject) {
+		mkdirp(directory, function (err) {
+			err ? reject(err) : resolve();
+		});
+	});
 }
 
-export function getDifferenceFilename(test: Test, suffix: string = '') {
-	return sanatizeFilename(`${ test.name }-diff${ suffix }.png`);
-}
-
-/**
- * Saves a buffer to disk
- * @param filename the location of the PNG
- * @param buffer a buffer containing the baseline image
- */
-export function save(filename: string, buffer: Buffer | string): void {
-	mkdirSync(dirname(filename));
-	writeFileSync(filename, buffer);
+export function save(filename: string, buffer: Buffer | string): Promise<any> {
+	return mkdir(dirname(filename))
+		.then(function () {
+			return new Promise(function (resolve, reject) {
+				writeFile(filename, buffer, function (err) {
+					err ? reject(err) : resolve();
+				});
+			});
+		});
 }
 
 export function copy(source: string, target: string): Promise<string> {
-	return new Promise(function (resolve, reject) {
-		mkdirSync(dirname(target));
+	return mkdir(dirname(target))
+		.then(function () {
+			return new Promise(function (resolve, reject) {
+				const inStream = createReadStream(source);
+				const outStream = createWriteStream(target);
 
-		const inStream = createReadStream(source);
-		const outStream = createWriteStream(target);
+				inStream.on('error', function (error: Error) {
+					reject(error);
+				});
 
-		inStream.on('error', function (error: Error) {
-			reject(error);
+				outStream.on('error', function (error: Error) {
+					reject(error);
+				});
+				outStream.on('close', function () {
+					resolve(target);
+				});
+
+				inStream.pipe(outStream);
+			});
 		});
-
-		outStream.on('error', function (error: Error) {
-			reject(error);
-		});
-		outStream.on('close', function () {
-			resolve(target);
-		});
-
-		inStream.pipe(outStream);
-	});
 }
 
 export function load<T extends WritableStream>(source: string, target: WritableStream): Promise<T> {

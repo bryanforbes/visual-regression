@@ -1,6 +1,6 @@
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
-import { getTestDirectory, getBaselineFilename, getSnapshotFilename, getDifferenceFilename }
+import { getTestDirectory, getBaselineFilename }
 	from 'src/util/file';
 import Test = require('intern/lib/Test');
 import Suite = require('intern/lib/Suite');
@@ -50,37 +50,9 @@ registerSuite({
 		},
 
 		'with suffix'() {
-			const actual = getBaselineFilename(test, 'suffix');
-			const expected = 'testsuffix.png';
+			const actual = getBaselineFilename(test, 3);
+			const expected = 'test_3.png';
 			assert.equal(actual, expected);
 		}
-	},
-
-	'.getSnapshotFilename()': {
-		'no extra options'() {
-			const actual = getSnapshotFilename(test);
-			const expected = 'test-snapshot.png';
-			assert.equal(actual, expected);
-		},
-
-		'with suffix'() {
-			const actual = getSnapshotFilename(test, 'suffix');
-			const expected = 'test-snapshotsuffix.png';
-			assert.equal(actual, expected);
-		}
-	},
-
-	'.getDifferenceFilename()': {
-		'no extra options'() {
-			const actual = getDifferenceFilename(test);
-			const expected = 'test-diff.png';
-			assert.equal(actual, expected);
-		},
-
-		'with suffix'() {
-			const actual = getDifferenceFilename(test, 'suffix');
-			const expected = 'test-diffsuffix.png';
-			assert.equal(actual, expected);
-		}
-	},
+	}
 });

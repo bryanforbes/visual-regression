@@ -12,9 +12,10 @@ registerSuite({
 		width: 1024,
 		height: 768,
 		missingBaseline: 'snapshot',
-		callback(report) {
-			assert.isTrue(report.isPassing);
-			assert.deepEqual(report.numDifferences, 0);
+		callback(result) {
+			assert.isFalse(result.baselineExists);
+			assert.isTrue(result.generatedBaseline);
+			assert.isNull(result.report);
 		}
 	})
 });

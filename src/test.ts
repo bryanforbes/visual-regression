@@ -1,13 +1,12 @@
 import resizeWindow from './helpers/resizeWindow';
-import assertVisuals, { Options as AssertVisualOptions } from './assert';
+import assertVisuals, { Options as AssertVisualOptions, AssertionResult } from './assert';
 import * as Command  from 'leadfoot/Command';
-import { Report } from './interfaces';
 
 export interface Options extends AssertVisualOptions {
 	url: string;
 	width?: number;
 	height?: number;
-	callback?: (report: Report) => any;
+	callback?: (report: AssertionResult) => any;
 }
 
 /**
@@ -27,9 +26,9 @@ export default function (options: Options): () => Command<any> {
 			})
 			.takeScreenshot()
 			.then(assertVisuals(this, options))
-			.then(function (report: Report) {
+			.then(function (result: AssertionResult) {
 				if (options.callback) {
-					return options.callback(report);
+					return options.callback(result);
 				}
 			});
 	};
