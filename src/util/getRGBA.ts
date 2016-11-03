@@ -1,10 +1,10 @@
 import { RGBColor, RGBAColorArray, ColorObject, RGBAColor } from '../interfaces';
 
-export type ColorDescriptor = string | RGBColor | number[] | number;
+export type ColorDescriptor = string | RGBColor | RGBAColor | number[] | number;
 
 const defaultColors = [0, 0, 0, 0xFF];
 
-function stringToNumber(radix: number = 10) {
+function stringToInt(radix: number = 10) {
 	return function (str: string) {
 		if (str.length === 1) {
 			str = str + str;
@@ -28,22 +28,35 @@ function fromHex(color: string): number[] {
 	for (var i = 0; i < color.length; i += digits) {
 		rgb.push(color.substring(i, i + digits));
 	}
-	return rgb.map(stringToNumber(16));
+	return rgb.map(stringToInt(16));
 }
 
 function fromString(color: string): number[] {
 	if (color.charAt(0) === '#') {
 		return fromHex(color);
 	}
-	return color.match(/\d+/g).map(stringToNumber());
+	else {
+		const match = color.match(/rgb(?:a?)\(([^)]*)\)/);
+		if (match && match.length === 2) {
+			const convert = stringToInt();
+			return match[1].split(',').map(function (value) {
+				if (value.indexOf('.') === -1) {
+					return convert(value);
+				}
+				else {
+					return Math.min(0xFF, 256 * Number(value));
+				}
+			});
+		}
+	}
 }
 
 function fromObject(color: ColorObject): RGBAColorArray {
 	var rgba: number[] = [];
 
-	rgba.push(color.red || 0);
-	rgba.push(color.green || 0);
-	rgba.push(color.blue || 0);
+	rgba.push(color.red || defaultColors[0]);
+	rgba.push(color.green || defaultColors[1]);
+	rgba.push(color.blue || defaultColors[2]);
 	rgba.push((<RGBAColor> color).alpha || defaultColors[3]);
 
 	return <RGBAColorArray> rgba;
