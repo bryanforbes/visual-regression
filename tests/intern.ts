@@ -26,6 +26,6 @@ export const loaderOptions = {
 
 export const suites: string[] = [ 'tests/unit/all' ];
 
-export const functionalSuites: string[] = [ 'tests/visual/all' ];
+export const functionalSuites: string[] = [ 'tests/functional/all', 'tests/visual/all' ];
 
 export const excludeInstrumentation = /^(?:tests|node_modules)\//;
