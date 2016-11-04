@@ -1,7 +1,8 @@
 import * as registerSuite from 'intern!object';
 import * as assert from 'intern/chai!assert';
-import resizeWindow from 'src/helpers/resizeWindow';
+import resizeWindow, { waitForWindowResize } from 'src/helpers/resizeWindow';
 
+const CHROME_THRESHOLD = 20;
 const basicPageUrl = require.toUrl('../support/pages/basic.html');
 
 const suite: Object = {
@@ -9,33 +10,35 @@ const suite: Object = {
 };
 
 [
-	// [ 3440, 1440 ],
-	// [ 1024, 768 ],
+	[ 3440, 1440 ],
+	[ 1024, 768 ],
 	[ 640, 480 ]
-].map(function ([ width, height ]) {
+].forEach(function ([ width, height ]) {
 	(<any> suite)[`${width}x${height}`] = function (): void {
-		let maximizedWidth: number;
-		let maximizedHeight: number;
+		const test = this;
 
 		return this.remote
 			.get(basicPageUrl)
+			.setWindowPosition(0, 0)
 			.maximizeWindow()
+			.then(waitForWindowResize())
 			.execute(function () {
 				return [ window.innerWidth, window.innerHeight ];
 			})
-			.then(function ([ width, height ]: [ number, number ]) {
-				maximizedWidth = width;
-				maximizedHeight = height;
+			.then(function ([ maximizedWidth, maximizedHeight ]: [ number, number ]) {
+				if (maximizedWidth - CHROME_THRESHOLD <= width ||
+					maximizedHeight - CHROME_THRESHOLD <= height) {
+					test.skip(`Maximum dimensions ${ maximizedWidth }x${ maximizedHeight } is less than ` +
+						`${ width }x${ height }`);
+				}
 			})
 			.then(resizeWindow(width, height))
 			.execute(function () {
 				return [ window.innerWidth, window.innerHeight ];
 			})
 			.then(function ([ actualWidth, actualHeight ]: [ number, number ]) {
-				assert.isTrue(actualWidth === width || actualWidth === maximizedWidth,
-					`expected width ${ actualWidth } to equal ${ width } or ${ maximizedWidth }`);
-				assert.isTrue(actualHeight === height || actualHeight === maximizedHeight,
-					`expected height ${ actualHeight } to equal ${ height } or ${ maximizedHeight }`);
+				assert.equal(actualWidth, width);
+				assert.equal(actualHeight, height);
 			});
 	};
 });

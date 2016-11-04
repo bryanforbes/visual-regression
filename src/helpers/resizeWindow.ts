@@ -8,7 +8,7 @@ export interface Resizer {
  * Wait until the browser stops changing in size and report back the last stable width and height
  * @return an array in the shape of [ width, height ]
  */
-function waitForWindowResize(): () => Command<[ number, number ]> {
+export function waitForWindowResize(): () => Command<[ number, number ]> {
 	return function () {
 		return this.parent
 			.setExecuteAsyncTimeout(5000)

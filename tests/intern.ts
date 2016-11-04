@@ -7,7 +7,7 @@ export const environments = [
 	{ browserName: 'chrome' }
 ];
 
-export const maxConcurrency = 2;
+export const maxConcurrency = 1;
 
 export const tunnel = 'NullTunnel';
 
