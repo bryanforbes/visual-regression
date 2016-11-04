@@ -12,7 +12,7 @@ export const environments = [
 	{ browserName: 'safari', version: '9.0', platform: 'OS X 10.11' }
 ];
 
-export const maxConcurrency = 2;
+export const maxConcurrency = 1;
 
 export const tunnel = 'SauceLabsTunnel';
 
