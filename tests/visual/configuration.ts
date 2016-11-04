@@ -9,8 +9,8 @@ registerSuite({
 
 	'create a test': visualTest({
 		url: basicPageUrl,
-		width: 1024,
-		height: 768,
+		width: 640,
+		height: 480,
 		missingBaseline: 'snapshot',
 		callback(result) {
 			assert.isFalse(result.baselineExists);

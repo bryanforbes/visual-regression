@@ -9,9 +9,9 @@ const suite: Object = {
 };
 
 [
-	[ 640, 480 ],
-	[ 1024, 768 ],
-	[ 3440, 1440 ]
+	// [ 3440, 1440 ],
+	// [ 1024, 768 ],
+	[ 640, 480 ]
 ].map(function ([ width, height ]) {
 	(<any> suite)[`${width}x${height}`] = function (): void {
 		let maximizedWidth: number;

@@ -25,7 +25,7 @@ function initializePage(url: string = basicPageUrl) {
 	return function () {
 		return this.parent
 			.get(url)
-			.then(resizeWindow(1024, 768));
+			.then(resizeWindow(640, 480));
 	};
 }
 
