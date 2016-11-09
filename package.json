@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@types/mkdirp": "^0.3.29",
-    "@types/pngjs2": "^2.0.28",
     "@types/sinon": "^1.16.31",
     "dojo-loader": "^2.0.0-beta.7",
     "grunt": "^1.0.1",
@@ -42,6 +41,6 @@
   "dependencies": {
     "mkdirp": "^0.5.1",
     "pngjs": "^2.3.1",
-    "ts-helpers": "1.1.2"
+    "ts-helpers": "^1.1.2"
   }
 }
